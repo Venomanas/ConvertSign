@@ -18,6 +18,7 @@ interface User {
 }
 interface UserProfile {
   uid: string;
+  displayName?: string;
 }
 
 interface AuthContextType {

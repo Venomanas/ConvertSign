@@ -59,7 +59,7 @@ export const FileProvider: React.FC<FileProviderProps> = ({children}) => {
     }, [files, currentUser]);
 
     //operation function for files 
-
+    
     //add a new files
     const addFile = (file : FileType): void =>{
         setFiles(prevFiles =>[...prevFiles, file]);

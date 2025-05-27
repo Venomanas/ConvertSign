@@ -1,49 +1,171 @@
 "use client";
-import React, { useState } from "react";
+import React, { JSX, useState } from "react";
 import { formatBytes, downloadFile} from "@/utils/fileUtils"
 import { useFileContext } from "@/context/FileContext";
+import Image from "next/image";
+
+//define types for type safety
+interface FileItem{
+  id:string;
+  name: string;
+  type: string;
+  size: number;
+  base64: string;
+  dateAdded: string | Date;
+  processed?: boolean;
+  isSignature?:boolean;
+}
+interface Tab{
+  id: string;
+  label:string;
+}
+
+type SortBy = "dateAdded" | "name" | "type" | "size";
+type SortDirection = "asc"| "desc";
+type ActiveTab = "all" | "images" | "documents" | "signatures" | "processed";
+
+//to get file icons , a helper function
+const getFileIcon = (file: FileItem):JSX.Element=>{
+  const fileType = file.type.split('/')[0];
+
+  switch (fileType) {
+    case 'image':
+      return (
+        <>
+          <svg
+            className="w-6 h-6 text-blue-500"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </>
+      );
+    case 'application':
+      return (
+        <>
+          <svg
+            className="w-6 h-6 text-red-500"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </>
+      );
+    default :
+      return (
+        <>
+          <svg
+            className="w-6 h-6 text-gray-500"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </>
+      );
+  }
+}
 
 
-export default function Dashboard() {
+export default function Dashboard(): JSX.Element {
   const {files, removefile} = useFileContext();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy,setSortBy ] = useState("dateAdded");
-  const [sortDirection, setSortDirection] = useState("desc");
-  const [activeTab, setActiveTab] = useState('all')
-
-  // here we Filter files based on active tab and search query
-  const getFilteredFiles =() =>{
-    let filtered =[...files];
-  }
-
-  //apply tab filter
-  if (activeTab === 'images'){
-    filtered = filteredFiles.filter(file => file.type.startsWith('image/'));
-  }
-
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy,setSortBy ] = useState<SortBy>("dateAdded");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [activeTab, setActiveTab] = useState<ActiveTab>('all');
 
     //file download
-    const handleDownload = (file) =>{
-        downloadFile(file.base64, file.name , file.type)
-    }
+  function handleDownload(file: FileItem): void {    
+    downloadFile(file.base64, file.name, file.type);
+  }
 
     //file deletion 
-    const handleDelete = (fileId) =>{
+    const handleDelete = (fileId: string): void =>{
         if (window.confirm('Are you sure you want to delete the files ?')) {
             removefile(fileId)
         }
     }
+  // here we Filter files based on active tab and search query
+  const getFilteredFiles =(): FileItem[] =>{
+    let filtered: FileItem[] = [...files as unknown as FileItem[]];
 
-    
+  
+  //apply tab filter
+  if (activeTab === 'images'){
+    filtered = filtered.filter((file: FileItem)=> file.type.startsWith('image/'));
+  }
+  else if(activeTab === 'documents'){
+    filtered = filtered.filter((file: FileItem)=> file.type.startsWith('application/') || file.type.startsWith('text/'));  
+  }
+  else if(activeTab === 'signatures'){
+    filtered=filtered.filter((file: FileItem)=> file.isSignature);
+  }
+  else if(activeTab === 'processed'){
+    filtered=filtered.filter((file: FileItem) => file.processed);
+  }
+
+  //apply search filter
+  if(searchQuery.trim()){
+    filtered=filtered.filter((file: FileItem)=>
+      file.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  // Apply sorting
+  filtered.sort((a: FileItem, b: FileItem)=>{
+    let aValue: string | number | Date;
+    let bValue: string | number | Date;
+
+    switch (sortBy) {
+      case 'name':
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+      case 'type':
+        aValue = a.type;
+        bValue= b.type;
+        break;
+      case 'size':
+        aValue = a.size;
+        bValue = b.size;
+        break;
+      case 'dateAdded':
+        default:
+          aValue = new Date(a.dateAdded);
+          bValue = new Date(b.dateAdded);
+          break;
+    }
+    if(aValue>bValue) return sortDirection === 'asc' ? 1:-1;
+    if(bValue>aValue) return sortDirection === 'asc' ? -1:1;
+    return 0;
+  });
+  return filtered
+  }
+  
+
 //file tabs
-const tabs = [
+const tabs: Tab[] = [
     {id:'all', label: 'All Files'},
     {id:'images', label: 'images'},
     {id:'documents', label: 'documents'},
     {id:'signatures', label: 'signatures'},
     {id:'processed', label: 'processed'},
-];
-const filteredFiles = getFilteredFiles();
+    ];
+  const filteredFiles = getFilteredFiles();
   return (
     <div className="max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 ">
@@ -86,15 +208,15 @@ const filteredFiles = getFilteredFiles();
             <select
               value={sortBy}
               onChange={e => {
-                setSortBy(e.target.value);
+                setSortBy(e.target.value as SortBy);
                 setSortDirection("asc");
               }}
               className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="dateAdded">Date</option>
-              <option value="Name">Name</option>
-              <option value="Type">Type</option>
-              <option value="Size">Size</option>
+              <option value="name">Name</option>
+              <option value="type">Type</option>
+              <option value="size">Size</option>
             </select>
 
             <button
@@ -146,27 +268,40 @@ const filteredFiles = getFilteredFiles();
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActiveTab(tab.id as ActiveTab)}
               className={`whitespace-nowrap py-2 px-3 border-b-2 text-sm font-medium ${
                 activeTab === tab.id
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-                {tab.label}
+              {tab.label}
             </button>
           ))}
         </nav>
       </div>
 
-     {/* File List*/}
-     {files.length === 0 ? (
+      {/* File List*/}
+      {files.length === 0 ? (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+            />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No files</h3>
-          <p className="mt-1 text-sm text-gray-500">Upload files to get started.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Upload files to get started.
+          </p>
         </div>
       ) : filteredFiles.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
@@ -176,51 +311,67 @@ const filteredFiles = getFilteredFiles();
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredFiles.map(file => (
-              <div key={file.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div
+                key={file.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
                 {/* File Preview */}
-                <div className={`h-40 bg-gray-100 flex items-center justify-center relative`}>
-                  {file.type.startsWith('image/') ? (
-                    <img 
-                      src={file.base64} 
+                <div
+                  className={`h-40 bg-gray-100 flex items-center justify-center relative`}
+                >
+                  {file.type.startsWith("image/") ? (
+                    <Image
+                      src={`data:${file.type};base64,${file.base64}`}
                       alt={file.name}
+                      fill
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="text-4xl text-gray-400">{getFileIcon(file)}</div>
+                    <div className="text-4xl text-gray-400">
+                      {getFileIcon(file)}
+                    </div>
                   )}
-                  
+
                   {file.processed && (
                     <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
                       Processed
                     </div>
                   )}
-                  
+
                   {file.isSignature && (
                     <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
                       Signature
                     </div>
                   )}
                 </div>
-                
+
                 {/* File Info */}
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate" title={file.name}>
+                      <p
+                        className="font-medium text-gray-900 truncate"
+                        title={file.name}
+                      >
                         {file.name}
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        {formatBytes(file.size)} • {file.type.split('/')[1].toUpperCase()}
+                        {formatBytes(file.size)} •{" "}
+                        {file.type.split("/")[1].toUpperCase()}
                       </p>
                       <p className="text-xs text-gray-400">
-                        Added: {new Date(file.dateAdded).toLocaleDateString()}
+                        Added:
+                        {(typeof file.dateAdded === "string"
+                          ? new Date(file.dateAdded)
+                          : file.dateAdded
+                        ).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="ml-2 flex-shrink-0">
                       {getFileIcon(file)}
                     </div>
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="mt-4 flex justify-end space-x-2">
                     <button
@@ -240,7 +391,7 @@ const filteredFiles = getFilteredFiles();
               </div>
             ))}
           </div>
-          
+
           <p className="mt-6 text-sm text-gray-500 text-center">
             Showing {filteredFiles.length} of {files.length} files
           </p>
@@ -248,12 +399,4 @@ const filteredFiles = getFilteredFiles();
       )}
     </div>
   );
-};
-
-
-
-
-
-
-
-
+}

@@ -17,6 +17,7 @@ interface User {
   displayName?: string;
 }
 interface UserProfile {
+  createdAt: string | number | Date;
   uid: string;
   displayName?: string;
 }

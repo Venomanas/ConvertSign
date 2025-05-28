@@ -1,6 +1,6 @@
 # Project Summary
 
-ConvertSign is a web application designed for users to effortlessly upload, resize, and convert files such as PDFs, documents, images, and photos. It also features digital signature creation and management of processed files through a user-friendly dashboard. Built with Next.js, Tailwind CSS, and Node.js, ConvertSign provides a robust solution for secure document management and file handling.
+ConvertSign is a web application designed for users to effortlessly upload, resize, and convert files such as PDFs, documents, images, and photos. It also features digital signature creation and management of processed files through a user-friendly dashboard. Built with Next.js with TypeScript, Tailwind CSS, and Node.js, ConvertSign provides a robust solution for secure document management and file handling.
 
 ## Project Module Description
 
@@ -57,6 +57,6 @@ react_template/
 
 ## Technology Stack
 
-- **Frontend**: Next.js, Tailwind CSS
-- **Backend**: Node.js
+- **Frontend**: Next.js, Tailwind CSS , TypeScript
+- **Backend**: Node.js , JavaScript
 - **State Management**: React Context API

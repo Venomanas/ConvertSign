@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import React, { JSX, useState } from "react";
 import { formatBytes, downloadFile} from "@/utils/fileUtils"
 import { useFileContext } from "@/context/FileContext";
@@ -82,7 +82,7 @@ const getFileIcon = (file: FileItem):JSX.Element=>{
 
 
 export default function Dashboard(): JSX.Element {
-  const {files, removefile} = useFileContext();
+  const {files, removeFile} = useFileContext();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy,setSortBy ] = useState<SortBy>("dateAdded");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -96,7 +96,7 @@ export default function Dashboard(): JSX.Element {
     //file deletion 
     const handleDelete = (fileId: string): void =>{
         if (window.confirm('Are you sure you want to delete the files ?')) {
-            removefile(fileId)
+            removeFile(fileId)
         }
     }
   // here we Filter files based on active tab and search query

@@ -1,3 +1,4 @@
+'use client'
 // import Image from "next/image";
 import Dashboard from "@/components/Dashboard";
 import Footer from "@/components/Footer";

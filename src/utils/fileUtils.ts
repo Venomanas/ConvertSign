@@ -4,12 +4,12 @@
  * @param {File} file - File to convert
  * @returns {Promise<string>} - Base64 string
  */
-export const fileToBase64 = file => {
+export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
   });
 };
 
@@ -19,7 +19,7 @@ export const fileToBase64 = file => {
  * @param {number} decimals - Number of decimals to show
  * @returns {string} - Formatted size string
  */
-export const formatBytes = (bytes, decimals = 2) => {
+export const formatBytes = (bytes:number, decimals: number = 2):string => {
   if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
@@ -36,8 +36,8 @@ export const formatBytes = (bytes, decimals = 2) => {
  * @param {string} fileName - File name
  * @returns {string} - File extension
  */
-export const getFileExtension = fileName => {
-  return fileName.split(".").pop().toLowerCase();
+export const getFileExtension = (fileName: string):string => {
+  return fileName.split(".").pop()?.toLowerCase() || '';
 };
 
 /**
@@ -45,8 +45,8 @@ export const getFileExtension = fileName => {
  * @param {string} extension - File extension
  * @returns {string} - MIME type
  */
-export const getMimeTypeFromExtension = extension => {
-  const mimeTypeMap = {
+export const getMimeTypeFromExtension = (extension:string):string => {
+  const mimeTypeMap: Record<string,string> = {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     png: "image/png",
@@ -74,10 +74,11 @@ export const getMimeTypeFromExtension = extension => {
  * @param {string} fileName - File name
  * @param {string} fileType - MIME type
  */
-export const downloadFile = (base64, fileName, fileType) => {
+export const downloadFile = (base64:string, fileName:string, fileType:string): void => {
   // Create blob from base64
+  if(typeof window === 'undefined')return ;//Guard for server Side
   const byteCharacters = atob(base64.split(",")[1]);
-  const byteArrays = [];
+  const byteArrays:number[] = [];
 
   for (let i = 0; i < byteCharacters.length; i++) {
     byteArrays.push(byteCharacters.charCodeAt(i));
@@ -103,15 +104,17 @@ export const downloadFile = (base64, fileName, fileType) => {
  * @param {number} height - Canvas height
  * @returns {HTMLCanvasElement} - Canvas element
  */
-export const getBlankCanvas = (width, height) => {
+export const getBlankCanvas = (width:number, height:number) : HTMLCanvasElement => {
+  if(typeof window === 'undefined'){throw new Error('this function must be called in abrowser environment')};
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
 
   const ctx = canvas.getContext("2d");
+  if(ctx){
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, width, height);
-
+  }
   return canvas;
 };
 
@@ -123,7 +126,7 @@ export const getBlankCanvas = (width, height) => {
  * @returns {Promise<string>} - Thumbnail as base64
  */
 export const createThumbnail = async (
-  base64,
+  base64: string,
   maxWidth = 200,
   maxHeight = 200
 ) => {
@@ -153,12 +156,13 @@ export const createThumbnail = async (
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
+        if(ctx){
         ctx.drawImage(img, 0, 0, width, height);
-
         // Get base64 of thumbnail
         const thumbnailBase64 = canvas.toDataURL("image/jpeg", 0.7);
         resolve(thumbnailBase64);
       };
+    }
 
       img.onerror = () => reject(new Error("Failed to load image"));
       img.src = base64;

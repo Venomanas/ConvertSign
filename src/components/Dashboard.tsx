@@ -168,8 +168,8 @@ const tabs: Tab[] = [
   const filteredFiles = getFilteredFiles();
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 ">
-        Dashboard
+      <h2 className="text-2xl mb-6 p-3 text-center text-gray-800 text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
+        Home
       </h2>
 
       {/* Search and Filter Controls  */}
@@ -199,7 +199,7 @@ const tabs: Tab[] = [
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search files...."
-                className="block w-full pl-10 text-black pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full pl-10 text-black pr-3 py-2 border border-gray-300 rounded-md focus:outline-none font-stretch-condensed     focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -211,7 +211,7 @@ const tabs: Tab[] = [
                 setSortBy(e.target.value as SortBy);
                 setSortDirection("asc");
               }}
-              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-800 font-stretch-condensed "
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -272,7 +272,7 @@ const tabs: Tab[] = [
               className={`whitespace-nowrap py-2 px-3 border-b-2 text-sm font-medium ${
                 activeTab === tab.id
                   ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-stretch-condensed"
               }`}
             >
               {tab.label}
@@ -333,13 +333,13 @@ const tabs: Tab[] = [
                   )}
 
                   {file.processed && (
-                    <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-stretch-condensed">
                       Processed
                     </div>
                   )}
 
                   {file.isSignature && (
-                    <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
+                    <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded font-stretch-condensed">
                       Signature
                     </div>
                   )}
@@ -350,7 +350,7 @@ const tabs: Tab[] = [
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p
-                        className="font-medium text-gray-900 truncate"
+                        className="font-medium text-gray-900 truncate font-stretch-condensed"
                         title={file.name}
                       >
                         {file.name}
@@ -376,13 +376,13 @@ const tabs: Tab[] = [
                   <div className="mt-4 flex justify-end space-x-2">
                     <button
                       onClick={() => handleDownload(file)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-stretch-condensed transition-colors"
                     >
                       Download
                     </button>
                     <button
                       onClick={() => handleDelete(file.id)}
-                      className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm transition-colors"
+                      className="px-3 py-1 bg-red-600 text-white font-stretch-condensed rounded-md hover:bg-red-700 text-sm transition-colors"
                     >
                       Delete
                     </button>

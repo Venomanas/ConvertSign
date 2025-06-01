@@ -27,22 +27,24 @@ const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick})
         {id:'dashboard', label:'Dashboard'},
     ];
   return (
-    <header className="bg-gray-800 shadow-indigo-500 shadow-2xs font-stretch-condensed ">
+    <header className="bg-[#574964] font-stretch-condensed ">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            <h1 className="text-2xl text-indigo-300 hover:cursor-se-resize">ConvertSign</h1>
+            <h1 className="text-2xl text-[#FFDAB3] hover:cursor-se-resize">
+              ConvertSign
+            </h1>
           </div>
           <div className="flex items-center">
-            <nav className="hidden md:flex space-x-1 mr-4">
+            <nav className="hidden md:flex space-x-2 mr-4">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`px-4 py-2 rounded-md ${
                     activeTab === item.id
-                      ? "bg-blue-600 text-white font-medium"
-                      : "text-indigo-100 hover:bg-indigo-500"
+                      ? "bg-blue-600 text-[#FFDAB3] font-medium"
+                      : "text-[#FFDAB3] hover:bg-[#C8AAAA]"
                   }`}
                 >
                   {item.label}

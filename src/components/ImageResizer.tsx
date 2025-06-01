@@ -5,7 +5,7 @@ import { FileObject } from "../utils/authUtils";
 import { useFileContext } from "../context/FileContext";
 import NextImage from "next/image";
 
-interface ImageResizerProps {
+export interface ImageResizerProps {
   file: FileObject;
   onSave: (resizedFile: FileObject) => void;
   onCancel: () => void;
@@ -123,12 +123,12 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-[#EFE4D2] p-6 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4 text-gray-700">Resize Image</h3>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
-          <p className="text-gray-500">Loading image...</p>
+          <p className="text-gray-300">Loading image...</p>
         </div>
       ) : (
         <>
@@ -160,7 +160,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
                   min="1"
                   value={width}
                   onChange={handleWidthChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EFE4D2]"
                 />
               </div>
 
@@ -173,7 +173,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
                   min="1"
                   value={height}
                   onChange={handleHeightChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EFE4D2]"
                 />
               </div>
 
@@ -205,13 +205,13 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
           <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
             <button
               onClick={onCancel}
-              className="py-2 px-4 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="py-2 px-4 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EFE4D2]"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="py-2 px-4 bg-[#EFE4D2] rounded-md text-white hover:bg-[#EFE4D2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EFE4D2]"
             >
               Apply Resize
             </button>

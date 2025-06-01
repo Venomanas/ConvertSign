@@ -1,33 +1,37 @@
-"use client"
-import { useAuth } from '@/context/AuthContext';
-import React from 'react'
-
-//Define types for better type safety
+"use client";
+import { useAuth } from "@/context/AuthContext";
+import React from "react";
 
 interface NavItem {
-    id: string;
-    label: string;
+  id: "upload" | "convert" | "resize" | "signature" | "dashboard"; // ensures type safety
+  label: string;
 }
+
+type TabType = "upload" | "convert" | "resize" | "signature" | "dashboard";
 
 interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  onProfileClick:() => void ;
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
+  onProfileClick: () => void;
 }
 
-const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick}) => {
+const Header: React.FC<HeaderProps> = ({
+  activeTab,
+  setActiveTab,
+  onProfileClick,
+}) => {
+  const { currentUser, userProfile } = useAuth();
 
-    const { currentUser, userProfile } = useAuth();
-    //Navigation items
-    const navItems: NavItem[] =[
-        {id:'upload', label:'Upload'},
-        {id:'convert', label:'Convert'},
-        {id:'Resize', label:'Resize'},
-        {id:'signature', label:'Signature'},
-        {id:'dashboard', label:'Dashboard'},
-    ];
+  const navItems: NavItem[] = [
+    { id: "upload", label: "Upload" },
+    { id: "convert", label: "Convert" },
+    { id: "resize", label: "Resize" }, // lowercase "resize"
+    { id: "signature", label: "Signature" },
+    { id: "dashboard", label: "Dashboard" },
+  ];
+
   return (
-    <header className="bg-[#574964] font-stretch-condensed ">
+    <header className="bg-[#574964] font-stretch-condensed">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
@@ -43,7 +47,7 @@ const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick})
                   onClick={() => setActiveTab(item.id)}
                   className={`px-4 py-2 rounded-md ${
                     activeTab === item.id
-                      ? "bg-blue-600 text-[#FFDAB3] font-medium"
+                      ? "bg-[#a59d91] text-[#FFDAB3] font-medium"
                       : "text-[#FFDAB3] hover:bg-[#C8AAAA]"
                   }`}
                 >
@@ -52,7 +56,6 @@ const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick})
               ))}
             </nav>
 
-            {/* User Profile Button */}
             <button
               onClick={onProfileClick}
               className="flex items-center justify-center bg-blue-100 hover:bg-blue-200 rounded-full h-10 w-10 text-blue-700"
@@ -66,11 +69,11 @@ const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick})
             </button>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Dropdown Navigation */}
           <div className="md:hidden">
             <select
               value={activeTab}
-              onChange={e => setActiveTab(e.target.value)}
+              onChange={e => setActiveTab(e.target.value as TabType)}
               className="bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {navItems.map(item => (
@@ -84,6 +87,6 @@ const Header:React.FC<HeaderProps> = ({activeTab, setActiveTab, onProfileClick})
       </div>
     </header>
   );
-}
+};
 
-export default Header
+export default Header;

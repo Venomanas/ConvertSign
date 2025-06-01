@@ -110,13 +110,16 @@ const FileUploader: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+      <h2
+        className="text-2xl mb-6 text-center 
+      font-extrabold font-stretch-condensed text-[#574964]"
+      >
         Upload Files
       </h2>
 
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
-          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+          dragActive ? "border-[#574964] bg-blue-50" : "border-gray-300"
         } transition-all duration-200 flex flex-col items-center justify-center`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -125,7 +128,7 @@ const FileUploader: React.FC = () => {
       >
         <svg
           className={`w-16 h-16 mb-4 ${
-            dragActive ? "text-blue-500" : "text-gray-400"
+            dragActive ? "text-blue-500" : "text-gray-900"
           }`}
           fill="none"
           stroke="currentColor"
@@ -140,16 +143,16 @@ const FileUploader: React.FC = () => {
           />
         </svg>
 
-        <p className="mb-2 text-gray-700 text-center">
+        <p className="mb-2 text-[#574964] text-center">
           <span className="font-medium">Click to upload</span> or drag and drop
         </p>
-        <p className="text-xs text-gray-500 mb-4 text-center">
+        <p className="text-xs text-[#574964] mb-4 text-center font-stretch-condensed p-2 ">
           PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG, GIF and more
         </p>
 
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#C8AAAA] text-white rounded-md hover:bg-[#574964] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
           disabled={isUploading}
         >
           {isUploading ? "Uploading..." : "Select Files"}
@@ -168,34 +171,34 @@ const FileUploader: React.FC = () => {
         <div className="mt-6">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+              className="bg-blue-200 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
-          <p className="mt-2 text-sm text-center text-gray-600">
+          <p className="mt-2 text-sm text-center text-gray-900">
             Uploading... {uploadProgress}%
           </p>
         </div>
       )}
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
+        <h3 className="text-lg font-stretch-condensed mb-4 text-gray-900">
           Supported File Types
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm">
-          <div className="bg-blue-50 rounded p-2 text-center">
+          <div className="bg-blue-50 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Images (JPG, PNG, GIF)
           </div>
-          <div className="bg-green-50 rounded p-2 text-center">
+          <div className="bg-green-50  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Documents (PDF, DOC)
           </div>
-          <div className="bg-yellow-50 rounded p-2 text-center">
+          <div className="bg-yellow-50  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Spreadsheets (XLS, XLSX)
           </div>
-          <div className="bg-purple-50 rounded p-2 text-center">
+          <div className="bg-purple-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Presentations (PPT, PPTX)
           </div>
-          <div className="bg-red-50 rounded p-2 text-center">
+          <div className="bg-red-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Text files (TXT)
           </div>
         </div>

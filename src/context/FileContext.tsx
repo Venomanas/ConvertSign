@@ -17,7 +17,9 @@ interface FileContextType {
   getFile: (fileId: string) => FileObject | undefined;
   clearFiles: () => void;
   //method to handle resized images
-  updateResizedImage: (fileId: string, resizedBase64:string)=> void;
+  updateResizedImage: (fileId: string, resizedBase64: string) => void;
+  selectedFile: FileObject | null;
+  setSelectedFile: (file: FileObject | null) => void;
 }
 
 //create context
@@ -42,6 +44,7 @@ export const useFileContext = (): FileContextType => {
 export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
   const { currentUser } = useAuth();
   const [files, setFiles] = useState<FileObject[]>([]);
+  const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
 
   //load user-depecific files when user change
 
@@ -106,7 +109,9 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
     getFile,
     clearFiles,
     removeFile,
-    updateResizedImage
+    updateResizedImage,
+    selectedFile,
+    setSelectedFile,
   };
 
   return (

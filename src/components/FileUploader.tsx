@@ -152,7 +152,7 @@ const FileUploader: React.FC = () => {
 
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-[#C8AAAA] text-white rounded-md hover:bg-[#574964] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#C8AAAA] text-white hover:text-[#FFDAB3] rounded-md hover:bg-[#574964] focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors"
           disabled={isUploading}
         >
           {isUploading ? "Uploading..." : "Select Files"}
@@ -171,7 +171,7 @@ const FileUploader: React.FC = () => {
         <div className="mt-6">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-blue-200 h-2.5 rounded-full transition-all duration-300"
+              className="bg-[#574964] h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>

@@ -136,7 +136,7 @@ const FileConverter:React.FC = ()=>{
                     onClick={() => handleFileSelect(file.id)}
                     className={`flex items-center p-3 mb-2 rounded-md cursor-pointer transition-colors ${
                       selectedFile?.id === file.id
-                        ? "bg-blue-100 border border-blue-300"
+                        ? "bg-white hover:bg-[#FFDAB3] border border-blue-300"
                         : "bg-gray-50 hover:bg-gray-100"
                     }`}
                   >
@@ -144,7 +144,7 @@ const FileConverter:React.FC = ()=>{
                     <div className="mr-3">
                       {file.type.startsWith("image/") ? (
                         <svg
-                          className="w-6 h-6 text-blue-500"
+                          className="w-6 h-6 text-black"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -195,7 +195,7 @@ const FileConverter:React.FC = ()=>{
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {file.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-900">
                         {(file.size / 1024).toFixed(2)} KB •{" "}
                         {getOriginalFormat(file).toUpperCase()}
                       </p>
@@ -213,10 +213,10 @@ const FileConverter:React.FC = ()=>{
               {selectedFile ? (
                 <>
                   <div className="mb-4">
-                    <p className="mb-2 text-sm text-gray-600">Selected File:</p>
+                    <p className="mb-2 text-sm text-black">Selected File:</p>
                     <div className="p-3 bg-blue-50 rounded-md">
-                      <p className="font-medium">{selectedFile.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-black">{selectedFile.name}</p>
+                      <p className="text-xs text-gray-900">
                         Original format:{" "}
                         {getOriginalFormat(selectedFile).toUpperCase()}
                       </p>
@@ -224,13 +224,13 @@ const FileConverter:React.FC = ()=>{
                   </div>
 
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-black mb-1">
                       Convert to:
                     </label>
                     <select
                       value={targetFormat}
                       onChange={handleFormatChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     >
                       <option value="">Select target format</option>
                       {getTargetFormats(selectedFile.type).map(format => (
@@ -252,7 +252,7 @@ const FileConverter:React.FC = ()=>{
                     disabled={!targetFormat || isConverting}
                     className={`w-full py-2 px-4 rounded-md transition-colors ${
                       !targetFormat || isConverting
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        ? "bg-gray-300 text-black cursor-not-allowed"
                         : "bg-blue-600 hover:bg-blue-700 text-white"
                     }`}
                   >

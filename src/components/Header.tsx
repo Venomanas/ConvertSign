@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`px-4 py-2 rounded-md ${
                     activeTab === item.id
-                      ? "bg-[#a59d91] text-[#FFDAB3] font-medium"
+                      ? "bg-[#C8AAAA] text-[#FFDAB3] font-medium"
                       : "text-[#FFDAB3] hover:bg-[#C8AAAA]"
                   }`}
                 >

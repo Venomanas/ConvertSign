@@ -160,17 +160,17 @@ export default function Dashboard(): JSX.Element {
 //file tabs
 const tabs: Tab[] = [
     {id:'all', label: 'All Files'},
-    {id:'images', label: 'images'},
-    {id:'documents', label: 'documents'},
-    {id:'signatures', label: 'signatures'},
-    {id:'processed', label: 'processed'},
+    {id:'images', label: 'Images'},
+    {id:'documents', label: 'Documents'},
+    {id:'signatures', label: 'Signatures'},
+    {id:'processed', label: 'Processed'},
     ];
   const filteredFiles = getFilteredFiles();
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl mb-6 p-3 text-center text-gray-800 text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
-        Home
-      </h2>
+      <h2 className="text-2xl mb-6 p-3 text-center text-gray-900 text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
+      Welcome🏠
+      </h2> 
 
       {/* Search and Filter Controls  */}
 

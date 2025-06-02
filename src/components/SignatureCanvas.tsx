@@ -364,7 +364,8 @@ const SignatureCanvas: React.FC = () => {
               value={signatureName}
               onChange={handleNameChange}
               placeholder="e.g. My Signature"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800
+              font-stretch-condensed"
             />
           </div>
 
@@ -456,10 +457,10 @@ const SignatureCanvas: React.FC = () => {
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">
           About Digital Signatures
         </h3>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
+        <div className="bg-white p-4 rounded-lg text-sm text-gray-900 shadow-sm">
           <p className="mb-2">Our digital signature tool allows you to:</p>
           <ul className="list-disc pl-5 mb-2 space-y-1">
             <li>Create digital signatures for documents</li>

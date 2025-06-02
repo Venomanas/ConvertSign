@@ -119,7 +119,7 @@ const FileUploader: React.FC = () => {
 
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
-          dragActive ? "border-[#574964] bg-blue-50" : "border-gray-300"
+          dragActive ? "border-[#574964]" : "border-gray-900"
         } transition-all duration-200 flex flex-col items-center justify-center`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}

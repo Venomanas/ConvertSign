@@ -350,13 +350,13 @@ const SignatureCanvas: React.FC = () => {
 
         {/* Sidebar Controls */}
         <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-background">
             Signature Options
           </h3>
 
           {/* Name Input */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Signature Name:
             </label>
             <input
@@ -371,7 +371,7 @@ const SignatureCanvas: React.FC = () => {
 
           {/* Color Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Pen Color:
             </label>
             <div className="flex flex-wrap gap-2">

@@ -168,7 +168,7 @@ const tabs: Tab[] = [
   const filteredFiles = getFilteredFiles();
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl mb-6 p-3 text-center text-gray-900 text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
+      <h2 className="text-2xl mb-6 p-3 text-center text-background text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
       Welcome🏠
       </h2> 
 
@@ -199,7 +199,7 @@ const tabs: Tab[] = [
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search files...."
-                className="block w-full pl-10 text-black pr-3 py-2 border border-gray-500 rounded-md focus:outline-none font-stretch-condensed     focus:ring-2 focus:ring-[#574964] focus:border-transparent"
+                className="block w-full pl-10 text-black pr-3 py-2 border border-gray-500 rounded-md focus:outline-none font-stretch-condensed focus:ring-2 focus:ring-[#574964] focus:border-transparent"
               />
             </div>
           </div>

@@ -28,11 +28,11 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><AuthProvider>
-        <FileProvider>          
-        {children}
-        </FileProvider>
-        </AuthProvider>    
+        suppressHydrationWarning={true}
+      >
+        <AuthProvider>
+          <FileProvider>{children}</FileProvider>
+        </AuthProvider>
       </body>
     </html>
   );

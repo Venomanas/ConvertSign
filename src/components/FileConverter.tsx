@@ -136,7 +136,7 @@ const FileConverter:React.FC = ()=>{
                     onClick={() => handleFileSelect(file.id)}
                     className={`flex items-center p-3 mb-2 rounded-md cursor-pointer transition-colors ${
                       selectedFile?.id === file.id
-                        ? "bg-white hover:bg-[#FFDAB3] border border-blue-300"
+                        ? "bg-white hover:bg-blue-200 border border-blue-300"
                         : "bg-gray-50 hover:bg-gray-100"
                     }`}
                   >

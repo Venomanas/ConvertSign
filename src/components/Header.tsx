@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import React from "react";
 
 interface NavItem {
-  id: "upload" | "convert" | "resize" | "signature" | "dashboard"; // ensures type safety
+  id: "upload" | "convert" | "resize" | "signature" | "dashboard"; 
   label: string;
 }
 

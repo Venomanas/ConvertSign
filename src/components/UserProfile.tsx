@@ -17,7 +17,7 @@ const UserProfile: React.FC<userProfileProps>=({ onClose}) => {
         <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
         <button
           onClick={onClose}
-          className="text-gray-300 hover:text-[#FFDAB3] hover:bg-[#574964] rounded-2xl"
+          className="text-gray-300 hover:text-emerald-500 hover:bg-sky-50 rounded-2xl"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

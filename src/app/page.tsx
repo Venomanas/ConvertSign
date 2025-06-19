@@ -66,7 +66,7 @@ function AppContent(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#EFE4D2]">
+    <div className="min-h-screen flex flex-col bg-sky-50">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}

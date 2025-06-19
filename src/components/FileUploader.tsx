@@ -152,7 +152,7 @@ const FileUploader: React.FC = () => {
 
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-[#C8AAAA] text-white hover:text-[#FFDAB3] rounded-md hover:bg-[#574964] focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#1a1b60] text-white hover:text-[#1a1b60] rounded-md hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors"
           disabled={isUploading}
         >
           {isUploading ? "Uploading..." : "Select Files"}
@@ -171,7 +171,7 @@ const FileUploader: React.FC = () => {
         <div className="mt-6">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-[#574964] h-2.5 rounded-full transition-all duration-300"
+              className="bg-emerald-400 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -185,14 +185,14 @@ const FileUploader: React.FC = () => {
         <h3 className="text-lg font-stretch-condensed mb-4 text-gray-900">
           Supported File Types
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm">
-          <div className="bg-blue-50 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm ">
+          <div className="bg-blue-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Images (JPG, PNG, GIF)
           </div>
-          <div className="bg-green-50  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-green-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Documents (PDF, DOC)
           </div>
-          <div className="bg-yellow-50  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-yellow-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Spreadsheets (XLS, XLSX)
           </div>
           <div className="bg-purple-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
@@ -201,6 +201,30 @@ const FileUploader: React.FC = () => {
           <div className="bg-red-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Text files (TXT)
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700">
+          About File Upload
+        </h3>
+        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
+         
+          <p>Upload Files to</p>
+          <ul className="list-disc pl-5 mb-2 space-y-1">
+            <li>Convert images between JPG, PNG, WebP, and more</li>
+            <li>Convert documents between PDF, DOC, and TXT formats</li>
+            <li>Convert spreadsheets to CSV or PDF</li>
+            <li>Convert presentations to PDF or image formats</li>
+          </ul>
+          <p>
+            All conversions are processed securely and your files are never
+            stored permanently.
+          </p>
+           <p className="font-bold m-2 p-2 text-green-300">
+            All the uploaded , Converted , Resized , Signature Files will be
+            displayed at Dashboard
+          </p>
         </div>
       </div>
     </div>

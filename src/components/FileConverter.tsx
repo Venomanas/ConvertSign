@@ -215,7 +215,9 @@ const FileConverter:React.FC = ()=>{
                   <div className="mb-4">
                     <p className="mb-2 text-sm text-black">Selected File:</p>
                     <div className="p-3 bg-blue-50 rounded-md">
-                      <p className="font-medium text-black">{selectedFile.name}</p>
+                      <p className="font-medium text-black">
+                        {selectedFile.name}
+                      </p>
                       <p className="text-xs text-gray-900">
                         Original format:{" "}
                         {getOriginalFormat(selectedFile).toUpperCase()}
@@ -288,6 +290,10 @@ const FileConverter:React.FC = ()=>{
             <p>
               All conversions are processed securely and your files are never
               stored permanently.
+            </p>
+            <p className="font-bold m-2 p-2 text-green-300">
+              All the uploaded , Converted , Resized , Signature Files will be
+              displayed at Dashboard
             </p>
           </div>
         </div>

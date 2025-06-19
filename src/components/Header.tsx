@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="bg-[#574964] font-stretch-condensed">
+    <header className="bg-[#1a1b60] font-stretch-condensed">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
@@ -47,8 +47,8 @@ const Header: React.FC<HeaderProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`px-4 py-2 rounded-md ${
                     activeTab === item.id
-                      ? "bg-[#C8AAAA] text-[#574964] font-stretch-condensed "
-                      : "hover:text-background hover:bg-[#C8AAAA]"
+                      ? "bg-sky-50 text-emerald-500 font-stretch-condensed "
+                      : "hover:text-background hover:bg-emerald-400"
                   }`}
                 >
                   {item.label}
@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onProfileClick}
-              className="flex items-center justify-center bg-[#C8AAAA]  rounded-full h-10 w-10  text-background hover:bg-[#FFDAB3]"
+              className="flex items-center justify-center bg-sky-50  rounded-full h-10 w-10  text-sky-500 hover:bg-sky-200"
               title="User Profile"
             >
               <span className=" font-bold">
@@ -74,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({
             <select
               value={activeTab}
               onChange={e => setActiveTab(e.target.value as TabType)}
-              className="bg-[#C8AAAA] text-background border border-gray-900 rounded-md py-2 px-3 focus:outline-none focus:ring-3 focus:ring-[#FFDAB3]"
+              className="bg-sky-100 text-background border border-gray-900 rounded-md py-2 px-3 focus:outline-none focus:ring-3 focus:ring-[#FFDAB3]"
             >
               {navItems.map(item => (
                 <option key={item.id} value={item.id} >

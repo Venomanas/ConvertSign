@@ -169,8 +169,8 @@ const tabs: Tab[] = [
   return (
     <div className="max-w-6xl mx-auto">
       <h2 className="text-2xl mb-6 p-3 text-center text-background text-shadow-2xl text-shadow-indigo font-stretch-condensed  ">
-      Welcome🏠
-      </h2> 
+        Welcome🏠
+      </h2>
 
       {/* Search and Filter Controls  */}
 
@@ -211,8 +211,8 @@ const tabs: Tab[] = [
                 setSortBy(e.target.value as SortBy);
                 setSortDirection("asc");
               }}
-              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#9F8383] bg-[#C8AAAA] hover:bg-[#574964] font-stretch-condensed 
-              text-[#574964] hover:text-[#FFDAB3]"
+              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a1b60] bg-[#1a1b60] hover:bg-sky-50 font-stretch-condensed 
+              text-white hover:text-blue-500"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -224,7 +224,7 @@ const tabs: Tab[] = [
               onClick={() =>
                 setSortDirection(sortDirection === "asc" ? "desc" : "asc")
               }
-              className="ml-2 p-1 rounded-md hover:bg-[#574964] "
+              className="ml-2 p-1 rounded-md hover:bg-[#1a1b60] "
               title={sortDirection === "asc" ? "Ascending" : "Descending"}
             >
               {sortDirection === "asc" ? (

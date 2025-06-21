@@ -284,7 +284,7 @@ const tabs: Tab[] = [
 
       {/* File List*/}
       {files.length === 0 ? (
-        <div className="text-center py-10 bg-neutral-100 rounded-lg border border-gray-200">
+        <div className="text-center py-10 bg-sky-100 rounded-lg border border-gray-200">
           <svg
             className="mx-auto h-12 w-12 text-neutral-400"
             fill="none"

@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-          <h1 className="text-2xl text-[#FFDAB3] hover:cursor-se-resize">
+          <h1 className="text-2xl text-blue-100 hover:cursor-se-resize">
               ConvertSign
             </h1>
           </div>
@@ -47,8 +47,8 @@ const Header: React.FC<HeaderProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`px-4 py-2 rounded-md ${
                     activeTab === item.id
-                      ? "bg-sky-50 text-emerald-500 font-stretch-condensed "
-                      : "hover:text-background hover:bg-emerald-400"
+                      ? "bg-sky-50 text-blue-500 font-stretch-condensed "
+                      : "hover:text-background hover:bg-sky-200"
                   }`}
                 >
                   {item.label}

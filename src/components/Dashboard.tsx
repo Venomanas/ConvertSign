@@ -211,8 +211,8 @@ const tabs: Tab[] = [
                 setSortBy(e.target.value as SortBy);
                 setSortDirection("asc");
               }}
-              className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a1b60] bg-[#1a1b60] hover:bg-sky-50 font-stretch-condensed 
-              text-white hover:text-blue-500"
+              className="px-2 py-1 border border-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a1b60] bg-[#1a1b60] hover:bg-white font-stretch-condensed 
+              text-white hover:text-blue-500 "
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -224,12 +224,12 @@ const tabs: Tab[] = [
               onClick={() =>
                 setSortDirection(sortDirection === "asc" ? "desc" : "asc")
               }
-              className="ml-2 p-1 rounded-md hover:bg-[#1a1b60] "
+              className="ml-2 p-1 text-black"
               title={sortDirection === "asc" ? "Ascending" : "Descending"}
             >
               {sortDirection === "asc" ? (
                 <svg
-                  className="w-5 h-5 text-[#574964] hover:text-[#FFDAB3]"
+                  className="w-5 h-5 "
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -244,7 +244,7 @@ const tabs: Tab[] = [
                 </svg>
               ) : (
                 <svg
-                  className="w-5 h-5 text-[#574964] hover:text-[#FFDAB3]"
+                  className="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -272,8 +272,8 @@ const tabs: Tab[] = [
               onClick={() => setActiveTab(tab.id as ActiveTab)}
               className={`whitespace-nowrap py-2 px-3 border-b-2 text-sm font-medium ${
                 activeTab === tab.id
-                  ? "border-[#9F8383] text-[#9F8383]"
-                  : "border-transparent text-gray-500 hover:text-[#574964] hover:border-[#574964]font-stretch-condensed"
+                  ? "border-blue-600 text-blue-500"
+                  : "border-transparent text-gray-900 hover:text-emerald-500 hover:border-[#574964]font-stretch-condensed"
               }`}
             >
               {tab.label}
@@ -286,7 +286,7 @@ const tabs: Tab[] = [
       {files.length === 0 ? (
         <div className="text-center py-10 bg-neutral-100 rounded-lg border border-gray-200">
           <svg
-            className="mx-auto h-12 w-12 text-[#574964]"
+            className="mx-auto h-12 w-12 text-neutral-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -300,13 +300,13 @@ const tabs: Tab[] = [
             />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No files</h3>
-          <p className="mt-1 text-sm text-[#574964]">
+          <p className="mt-1 text-sm text-neutral-900">
             Upload files to get started.
           </p>
         </div>
       ) : filteredFiles.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-[#574964]">No files match your filter criteria.</p>
+          <p className="text-gray-900">No files match your filter criteria.</p>
         </div>
       ) : (
         <>

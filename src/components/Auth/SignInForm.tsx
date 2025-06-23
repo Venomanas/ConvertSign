@@ -3,7 +3,6 @@ import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
 
 // defines Types
-
 interface FormData {
   email: string;
   password: string;
@@ -59,22 +58,13 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
   };
 
   return (
-    <div
-      className="p-8 rounded-lg shadow-lg max-w-md w-full mx-auto"
-      style={{ backgroundColor: "#FFDAB3" }}
-    >
-      <h2
-        className="text-2xl font-bold mb-6 text-center"
-        style={{ color: "#574964" }}
-      >
+    <div className="p-8 rounded-lg shadow-lg max-w-md w-full mx-auto bg-blue-100">
+      <h2 className="text-2xl font-bold mb-6 text-center text-[#1a1b60]">
         Welcome Back
       </h2>
 
       {error && (
-        <div
-          className="mb-4 p-3 text-sm rounded-md"
-          style={{ backgroundColor: "#C8AAAA", color: "#574964" }}
-        >
+        <div className="mb-4 p-3 text-sm rounded-md bg-red-400 text-white">
           {error}
         </div>
       )}
@@ -83,8 +73,7 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
         <div className="mb-4">
           <label
             htmlFor="email"
-            className="block text-sm font-medium mb-2"
-            style={{ color: "#574964" }}
+            className="block text-sm font-medium mb-2 text-[#1a1b60] "
           >
             Email
           </label>
@@ -94,12 +83,7 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{
-              borderColor: "#9F8383",
-              color: "#574964",
-              backgroundColor: "#FFDAB3",
-            }}
+            className="w-full px-3 py-2  rounded-md focus:outline-[#1a1b60] focus:ring-2 bg-white text-[#1a1b60]"
             placeholder="Enter your email"
             required
           />
@@ -108,8 +92,7 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
         <div className="mb-6">
           <label
             htmlFor="password"
-            className="block text-sm font-medium mb-2"
-            style={{ color: "#574964" }}
+            className="block text-sm font-medium mb-2 text-[#1a1b60] "
           >
             Password
           </label>
@@ -119,34 +102,28 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{
-              borderColor: "#9F8383",
-              color: "#574964",
-              backgroundColor: "#FFDAB3",
-            }}
+            className="w-full px-3 py-2  rounded-md focus:outline-[#1a1b60] focus:ring-2 bg-white text-[#1a1b60]"
             placeholder="Enter your password"
             required
           />
         </div>
-
         <button
           type="submit"
           disabled={isLoading}
           className="w-full py-2 px-4 rounded-md transition-colors mb-4"
           style={{
-            backgroundColor: isLoading ? "#C8AAAA" : "#574964",
-            color: isLoading ? "#9F8383" : "#FFDAB3",
+            backgroundColor: isLoading ? "#06923E" : "#1a1b60",
+            color: isLoading ? "#06923E" : "#ffffff",
             cursor: isLoading ? "not-allowed" : "pointer",
           }}
           onMouseEnter={e => {
             if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#9F8383";
+              e.currentTarget.style.backgroundColor = "#1a1b60";
             }
           }}
           onMouseLeave={e => {
             if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#574964";
+              e.currentTarget.style.backgroundColor = "#1a1b60";
             }
           }}
         >
@@ -154,18 +131,19 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
         </button>
       </form>
 
-      <div className="text-center text-sm">
-        <span style={{ color: "#9F8383" }}>Don&apos;t have an account?</span>{" "}
+      <div className="text-center text-sm ">
+        <span className="text-amber-400 font-semibold">
+          Don&apos;t have an account ?
+        </span>
         <button
           type="button"
           onClick={onToggleForm}
-          className="font-medium transition-colors"
-          style={{ color: "#574964" }}
+          className="font-medium transition-colors text-[#1a1b60] underline"
           onMouseEnter={e => {
-            e.currentTarget.style.color = "#9F8383";
+            e.currentTarget.style.color = "#06923E";
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = "#574964";
+            e.currentTarget.style.color = "#1a1b60";
           }}
         >
           Sign Up

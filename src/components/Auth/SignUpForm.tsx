@@ -68,18 +68,15 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
   };
 
   return (
-    <div className="p-8 rounded-lg shadow-lg max-w-md w-full mx-auto bg-[#FFDAB3] ">
-      <h2
-        className="text-2xl font-bold mb-6 text-center"
-        style={{ color: "#574964" }}
-      >
+    <div className="p-8 rounded-lg shadow-lg max-w-md w-full mx-auto bg-blue-100 ">
+      <h2 className="text-2xl font-bold mb-6 text-center text-black">
         Create Account
       </h2>
 
       {error && (
         <div
-          className="mb-4 p-3 text-sm rounded-md bg-[#C8AAAA]"
-          style={{ color: "#574964" }}
+          className="mb-4 p-3 text-sm rounded-md bg-red-400 
+        text-white"
         >
           {error}
         </div>
@@ -89,8 +86,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
         <div className="mb-4">
           <label
             htmlFor="fullName"
-            className="block text-sm font-medium mb-1"
-            style={{ color: "#574964" }}
+            className="block text-sm font-medium mb-1 text-black"
           >
             Full Name
           </label>
@@ -100,19 +96,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
             name="fullName"
             value={formData.fullName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[#9F8383] bg-[#FFDAB3] rounded-md focus:outline-[#574964] focus:ring-2 "
-            style={{
-              color: "#574964",
-            }}
+            className="w-full px-3 py-2 bg-white rounded-md focus:outline-[#1a1b60]  focus:ring-2 text-[#1a1b60]"
             required
           />
         </div>
-
         <div className="mb-4">
           <label
             htmlFor="email"
-            className="block text-sm font-medium mb-2"
-            style={{ color: "#574964" }}
+            className="block text-sm font-medium mb-2 text-black"
           >
             Email
           </label>
@@ -122,10 +113,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[#9F8383] rounded-md focus:outline-none focus:ring-2 bg-[#FFDAB3]"
-            style={{
-              color: "#574964",
-            }}
+            className="w-full px-3 py-2 rounded-md focus:outline-[#1a1b60]focus:ring-2 bg-white text-[#1a1b60]"
             required
           />
         </div>
@@ -133,8 +121,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
         <div className="mb-4">
           <label
             htmlFor="password"
-            className="block text-sm font-medium mb-1"
-            style={{ color: "#574964" }}
+            className="block text-sm font-medium mb-1 text-black"
           >
             Password
           </label>
@@ -144,14 +131,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[#9F8383] rounded-md focus:outline-none focus:ring-2 bg-[#FFDAB3]"
-            style={{
-              color: "#574964",
-            }}
+            className="w-full px-3 py-2 rounded-md bg-white focus:outline-[#1a1b60] focus:ring-2 text-[#1a1b60]"
             required
           />
-          <p className="mt-1 text-xs" style={{ color: "#9F8383" }}>
-            Password must be at least 6 characters long
+          <p className="mt-1 text-xs text-red-400 font-serif">
+            ! Password must be at least 6 characters long
           </p>
         </div>
 
@@ -159,7 +143,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
           <label
             htmlFor="ConfirmPassword"
             className="block text-sm font-medium mb-1"
-            style={{ color: "#574964" }}
           >
             Confirm Password
           </label>
@@ -169,10 +152,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
             name="ConfirmPassword"
             value={formData.ConfirmPassword}
             onChange={handleChange}
-            className="border-[#9F8383] bg-[#FFDAB3] w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{    
-              color: "#574964",         
-            }}
+            className="bg-white w-full px-3 py-2 rounded-md focus:outline-[#1a1b60] focus:ring-2 text-[#1a1b60]"
             required
           />
         </div>
@@ -182,18 +162,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
           disabled={isLoading}
           className="w-full py-2 px-4 rounded-md transition-colors"
           style={{
-            backgroundColor: isLoading ? "#C8AAAA" : "#574964",
-            color: isLoading ? "#9F8383" : "#FFDAB3",
+            backgroundColor: isLoading ? "#06923E" : "#1a1b60",
+            color: isLoading ? "#06923E" : "#ffffff",
             cursor: isLoading ? "not-allowed" : "pointer",
           }}
           onMouseEnter={e => {
             if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#9F8383";
+              e.currentTarget.style.backgroundColor = "#1a1b60";
             }
           }}
           onMouseLeave={e => {
             if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#574964";
+              e.currentTarget.style.backgroundColor = "#1a1b60";
             }
           }}
         >
@@ -202,16 +182,17 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
       </form>
 
       <div className="mt-6 text-center text-sm">
-        <span style={{ color: "#9F8383" }}>Already have an account?</span>{" "}
+        <span className="text-amber-400 font-semibold">
+          Already have an account ?
+        </span>
         <button
           onClick={onToggleForm}
-          className="font-medium transition-colors"
-          style={{ color: "#574964" }}
+          className="font-medium transition-colors underline text-[#1a1b60]"
           onMouseEnter={e => {
-            e.currentTarget.style.color = "#9F8383";
+            e.currentTarget.style.color = "#06923E";
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = "#574964";
+            e.currentTarget.style.color = "#1a1b60";
           }}
         >
           Sign in

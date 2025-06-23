@@ -27,12 +27,12 @@ const Auth:React.FC<AuthProps> = ({ onAuthSuccess })=> {
           </div>
 
           {showSignIn ? (
-            <SignInForm
+            <SignUpForm
               onToggleForm={toggleForm}
               onAuthSuccess={onAuthSuccess}
             />
           ) : (
-            <SignUpForm
+            <SignInForm
               onToggleForm={toggleForm}
               onAuthSuccess={onAuthSuccess}
             />

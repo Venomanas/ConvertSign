@@ -55,7 +55,7 @@ react_template/
 - **tailwind.config.js**: Configuration file for Tailwind CSS.
 - **vite.config.js**: Configuration file for Vite, a build tool.
 
-## Technology Stack
+## Tech Stack
 
 - **Frontend**: Next.js, Tailwind CSS , TypeScript
 - **Backend**: Node.js , JavaScript

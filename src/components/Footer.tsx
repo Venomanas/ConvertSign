@@ -19,8 +19,10 @@ const Footer = () => {
           <div className="flex flex-col items-center md:items-end">
             <div className="mb-2">
               <p className="text-blue-100 font-stretch-condensed tet-xl ">
-                © {new Date().getFullYear()}
-                <span className="p-0.5">ConvertSign</span> All right Reserved
+                <br />
+                ©{new Date().getFullYear()}
+                <span className="p-0.5"> ConvertSign</span>
+                All right Reserved
               </p>
             </div>
 

@@ -291,10 +291,11 @@ const FileConverter:React.FC = ()=>{
               All conversions are processed securely and your files are never
               stored permanently.
             </p>
-            <p className="font-bold m-2 p-2 text-green-300">
-              All the uploaded , Converted , Resized , Signature Files will be
-              displayed at Dashboard
-            </p>
+            <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
+              <p className="text-center font-medium m-2 p-2 text-purple-600/70">
+                After conversion all the files will be displayed at Dashboard
+              </p>
+            </div>
           </div>
         </div>
       </div>

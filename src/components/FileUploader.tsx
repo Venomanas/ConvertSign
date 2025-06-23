@@ -107,6 +107,32 @@ const FileUploader: React.FC = () => {
       inputRef.current.click();
     }
   };
+  interface Step {
+    title: string;
+    description: string;
+  }
+
+  const steps: Step[] = [
+    {
+      title: "Upload Files",
+      description:
+        "Click the upload button or drag and drop your files onto the page",
+    },
+    {
+      title: "Select Format",
+      description:
+        "Choose your desired output format from the available options",
+    },
+    {
+      title: "Convert Files",
+      description: "Click convert and wait for processing to complete",
+    },
+    {
+      title: "Download Results",
+      description:
+        "Download your converted files individually or as a ZIP archive",
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -205,30 +231,61 @@ const FileUploader: React.FC = () => {
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
+        <h2 className="text-lg font-semibold mb-4 text-gray-700">
           About File Upload
-        </h3>
+        </h2>
         <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
-         
-          <p>Upload Files to</p>
+          <h3>Upload Files to : </h3>
+          <br />
           <ul className="list-disc pl-5 mb-2 space-y-1">
-            <li>Convert images between JPG, PNG, WebP, and more</li>
+            <li>Convert images between JPG, PNG, WebP, and more formats</li>
             <li>Convert documents between PDF, DOC, and TXT formats</li>
-            <li>Convert spreadsheets to CSV or PDF</li>
+            <li>Convert spreadsheets to CSV or PDF formats</li>
             <li>Convert presentations to PDF or image formats</li>
           </ul>
+          <br />
           <p>
             All conversions are processed securely and your files are never
             stored permanently.
           </p>
-           <p className="font-bold m-2 p-2 text-green-300">
-            All the uploaded , Converted , Resized , Signature Files will be
-            displayed at Dashboard
-          </p>
+          <h3 className="font-bold m-2 p-2 text-purple-600/70">
+            <div className={`how-to-use bg-white rounded-lg p-6 shadow-sm `}>
+              <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
+                Steps to Use
+              </h2>
+
+              <ol className="numbered-steps space-y-6 max-w-2xl mx-auto">
+                {steps.map((step, index) => (
+                  <li
+                    key={index}
+                    className="step-item flex items-start gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 bg-[#1a1b60] text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="step-title text-lg font-semibold text-gray-800 mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="step-description text-gray-400 leading-relaxed">
+                        {step.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
+                <p className="text-green-800/80 text-center font-medium">
+                  All files are temporarily stored in our secure dashboard and
+                  automatically deleted after 24 hours.
+                </p>
+              </div>
+            </div>
+          </h3>
         </div>
       </div>
     </div>
   );
 };
-
 export default FileUploader;

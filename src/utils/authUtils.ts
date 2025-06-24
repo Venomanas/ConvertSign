@@ -1,5 +1,6 @@
 import {FormatOption} from '@/components/FileConverter'
 export interface User{
+  name?:string;
   uid:string;
   email:string;
 }
@@ -30,6 +31,8 @@ export interface FileObject {
   isSignature?: boolean;
   convertedFormat?: FormatOption | "";
   dateProccessed?: string;
+  path?:string;
+  lastModified?:string;
 }
 
 /* note !!!

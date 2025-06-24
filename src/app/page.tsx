@@ -31,13 +31,18 @@ function AppContent(): JSX.Element {
         return <FileConverter />;
       case "resize":
         if (!selectedFile) return <p className="text-center text-black">No file selected</p>;
-        return (
-          <ImageResizer
-            file={selectedFile}
-            onSave={resizedFile => console.log(resizedFile)}
-            onCancel={() => console.log("Cancelled")}
-          />
-        );
+        try {
+          return (
+            <ImageResizer
+              file={selectedFile}
+              onSave={resizedFile => console.log(resizedFile)}
+              onCancel={() => console.log("Cancelled")}
+            />
+          );
+        } catch (err) {
+          console.error("Error in ImageResizer:", err);
+          return <p>Error loading ImageResizer</p>;
+        }
       case "signature":
         return <SignatureCanvas />;
       case "dashboard":

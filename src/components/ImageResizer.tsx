@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { FileObject } from "../utils/authUtils";
-import { useFileContext } from "../context/FileContext";
+import { FileObject } from "@/utils/authUtils";
+import { useFileContext } from "@/context/FileContext";
 import NextImage from "next/image";
 
 export interface ImageResizerProps {

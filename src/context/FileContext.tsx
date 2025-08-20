@@ -94,7 +94,6 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
     return files.find(file => file.id === fileId);
   };
   //update resized image
-
   const updateResizedImage =(fileId: string, resizedBase64: string): void =>{
     setFiles(prevFiles=>
       prevFiles.map(file=>

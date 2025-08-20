@@ -1,6 +1,5 @@
 "use client";
 
-import { useFileContext } from "@/context/FileContext";
 import React, { JSX, useState } from "react";
 import { FileProvider } from "@/context/FileContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -14,11 +13,9 @@ import Dashboard from "@/components/Dashboard";
 import Auth from "@/components/Auth/Auth";
 import UserProfile from "@/components/UserProfile";
 
-
 type TabType = "upload" | "convert" | "resize" | "signature" | "dashboard";
 
 function AppContent(): JSX.Element {
-  const { selectedFile } = useFileContext();
   const [activeTab, setActiveTab] = useState<TabType>("upload");
   const [showProfile, setShowProfile] = useState<boolean>(false);
   const { currentUser, loading } = useAuth();
@@ -30,19 +27,7 @@ function AppContent(): JSX.Element {
       case "convert":
         return <FileConverter />;
       case "resize":
-        if (!selectedFile) return <p className="text-center text-black">No file selected</p>;
-        try {
-          return (
-            <ImageResizer
-              file={selectedFile}
-              onSave={resizedFile => console.log(resizedFile)}
-              onCancel={() => console.log("Cancelled")}
-            />
-          );
-        } catch (err) {
-          console.error("Error in ImageResizer:", err);
-          return <p>Error loading ImageResizer</p>;
-        }
+          return <ImageResizer />
       case "signature":
         return <SignatureCanvas />;
       case "dashboard":

@@ -94,7 +94,7 @@ export default function Dashboard(): JSX.Element {
   }
 
     //file deletion 
-    const handleDelete = (fileId: string): void =>{
+  const handleDelete = (fileId: string): void =>{
         if (window.confirm('Are you sure you want to delete the files ?')) {
             removeFile(fileId)
         }

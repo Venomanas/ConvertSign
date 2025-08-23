@@ -344,24 +344,24 @@ const DashboardContent = (): JSX.Element => {
       {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ">
+            <MagnifyingGlassIcon className="h-5 w-5 text-blue-500" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search files..."
-            className="block w-full rounded-md border-gray-300 pl-10 pr-3 py-2 text-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="block w-full rounded-md border-red-800 pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-700">Sort by:</span>
+          <span className="text-sm text-gray-900">Sort by:</span>
           <div className="flex items-center space-x-2">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortBy)}
-              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>

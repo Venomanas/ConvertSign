@@ -3,6 +3,7 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { useFileContext } from "../context/FileContext";
 import { fileToBase64 } from "../utils/fileUtils";
+import { ArrowUpTrayIcon } from "@heroicons/react/16/solid";
 
 const FileUploader: React.FC = () => {
   const { addFile } = useFileContext();
@@ -135,53 +136,41 @@ const FileUploader: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h2
-        className="text-2xl mb-6 text-center 
-      font-extrabold font-stretch-condensed text-[#574964]"
-      >
-        Upload Files
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+      <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-8 ">
+        Upload Your Files
       </h2>
 
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
-          dragActive ? "border-[#574964]" : "border-gray-900"
+          dragActive
+            ? "border-indigo-500 bg-indigo-50"
+            : "border-gray-300 bg-gray-50"
         } transition-all duration-200 flex flex-col items-center justify-center`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <svg
-          className={`w-16 h-16 mb-4 ${
-            dragActive ? "text-blue-500" : "text-gray-900"
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+        <div className="flex flex-col items-center justify-center text-center">
+          <ArrowUpTrayIcon
+            className={`w-16 h-16 mb-4 transition-colors duration-200 ${
+              dragActive ? "text-indigo-600" : "text-gray-400"
+            }`}
           />
-        </svg>
-
-        <p className="mb-2 text-[#574964] text-center">
-          <span className="font-medium">Click to upload</span> or drag and drop
-        </p>
-        <p className="text-xs text-[#574964] mb-4 text-center font-stretch-condensed p-2 ">
-          PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG, GIF and more
-        </p>
-
+          <p className="mb-2 text-black text-center">
+            <span className="font-semibold text-indigo-600">drag and drop</span>{" "}
+          </p>
+          <p className="text-xs max-w-sm text-black mb-4 text-center p-2 ">
+            PNG, JPG, PDF, DOCX, and more. All files are processed securely.
+          </p>
+        </div>
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-[#1a1b60] text-white hover:text-[#1a1b60] rounded-md hover:bg-sky-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#1a1b60] text-white hover:text-[#1a1b60] rounded-md hover:bg-sky-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors "
           disabled={isUploading}
         >
-          {isUploading ? "Uploading..." : "Select Files"}
+          {isUploading ? "Uploading..." : "Click to upload "}
         </button>
 
         <input
@@ -197,7 +186,7 @@ const FileUploader: React.FC = () => {
         <div className="mt-6">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-emerald-400 h-2.5 rounded-full transition-all duration-300"
+              className="bg-blue-400 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -207,8 +196,8 @@ const FileUploader: React.FC = () => {
         </div>
       )}
 
-      <div className="mt-8">
-        <h3 className="text-lg font-stretch-condensed mb-4 text-gray-900">
+      <div className="mt-12">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">
           Supported File Types
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm ">
@@ -231,23 +220,6 @@ const FileUploader: React.FC = () => {
       </div>
 
       <div className="mt-8">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">
-          About File Upload
-        </h2>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
-          <h3>Upload Files to : </h3>
-          <br />
-          <ul className="list-disc pl-5 mb-2 space-y-1">
-            <li>Convert images between JPG, PNG, WebP, and more formats</li>
-            <li>Convert documents between PDF, DOC, and TXT formats</li>
-            <li>Convert spreadsheets to CSV or PDF formats</li>
-            <li>Convert presentations to PDF or image formats</li>
-          </ul>
-          <br />
-          <p>
-            All conversions are processed securely and your files are never
-            stored permanently.
-          </p>
           <h3 className="font-bold m-2 p-2 text-purple-600/70">
             <div className={`how-to-use bg-white rounded-lg p-6 shadow-sm `}>
               <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
@@ -277,15 +249,14 @@ const FileUploader: React.FC = () => {
 
               <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
                 <p className="text-green-800/80 text-center font-medium">
-                  All files are temporarily stored in our secure dashboard and
-                  automatically deleted after 24 hours.
+                  All files are temporarily stored in your dashboard .
                 </p>
               </div>
             </div>
           </h3>
         </div>
       </div>
-    </div>
+
   );
 };
 export default FileUploader;

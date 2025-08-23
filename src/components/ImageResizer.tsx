@@ -7,7 +7,13 @@ import React, {
   useCallback,
   Fragment,
 } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import {
   CheckCircleIcon,
   XMarkIcon,
@@ -17,7 +23,7 @@ import {
   ArrowPathIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
+// import Image from "next/image";
 
 // Define the file object interface
 export interface FileObject {
@@ -26,8 +32,8 @@ export interface FileObject {
   type: string;
   size: number;
   base64: string;
-  width?: number; // Added for new dimensions
-  height?: number; // Added for new dimensions
+  width?: number;
+  height?: number;
 }
 
 export interface ImageResizerProps {
@@ -44,6 +50,15 @@ const fileToBase64 = (file: File) => {
     reader.onerror = error => reject(error);
     reader.readAsDataURL(file);
   });
+};
+
+// Fix malformed base64 strings
+const fixBase64String = (base64: string): string => {
+  // Ensure proper base64 format with comma after "base64"
+  if (base64.includes("base64") && !base64.includes("base64,")) {
+    return base64.replace("base64", "base64,");
+  }
+  return base64;
 };
 
 const ImageResizer: React.FC<ImageResizerProps> = ({
@@ -105,8 +120,10 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
       setIsLoading(false);
     };
 
+    // Fix the base64 string before setting as src
+    const fixedBase64 = fixBase64String(file.base64);
     image.crossOrigin = "anonymous";
-    image.src = file.base64;
+    image.src = fixedBase64;
   }, [file]);
 
   // Update the canvas preview when dimensions change
@@ -258,7 +275,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
                   max="10000"
                   value={width}
                   onChange={handleWidthChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-black"
                 />
               </div>
 
@@ -272,7 +289,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
                   max="10000"
                   value={height}
                   onChange={handleHeightChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-black"
                 />
               </div>
 
@@ -305,7 +322,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 py-3 px-6 rounded-xl border border-gray-300 text-gray-800 font-semibold shadow-sm hover:bg-gray-100 transition-all"
+                className="flex-1 py-3 px-6 rounded-xl border border-gray-300 text-gray-800 font-semibold shadow-sm hover:bg-indigo-100 transition-all"
               >
                 Cancel
               </button>
@@ -336,7 +353,8 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
           </div>
           <div className="relative w-full h-auto max-h-[400px] overflow-hidden rounded-lg">
             {preview ? (
-              <Image
+              // Use regular img tag for base64 images instead of Next.js Image
+              <img
                 src={preview}
                 alt="Resized preview"
                 className="w-full h-auto object-contain"
@@ -368,12 +386,13 @@ export default function App() {
     if (selectedFile) {
       try {
         const base64 = await fileToBase64(selectedFile);
+        const fixedBase64 = fixBase64String(base64);
         const newFileObject: FileObject = {
           id: crypto.randomUUID(),
           name: selectedFile.name,
           type: selectedFile.type,
           size: selectedFile.size,
-          base64: base64,
+          base64: fixedBase64,
         };
         setFile(newFileObject);
         setResizedFile(null); // Clear previous resized file
@@ -441,22 +460,22 @@ export default function App() {
       )}
 
       <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/30" />
-          </Transition.Child>
+        <TransitionChild
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/30" />
+        </TransitionChild>
 
+        <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="ease-out duration-300"
                 enterFrom="opacity-0 scale-95"
@@ -465,14 +484,14 @@ export default function App() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
+                <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <DialogTitle
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900 flex items-center gap-2"
                   >
                     <CheckCircleIcon className="w-6 h-6 text-green-500" />
                     Image Resized!
-                  </Dialog.Title>
+                  </DialogTitle>
                   <div className="mt-2">
                     {resizedFile && (
                       <div className="text-sm text-gray-500">
@@ -480,10 +499,12 @@ export default function App() {
                         <p className="font-semibold text-gray-700">
                           {resizedFile.name}
                         </p>
-                        <Image
+                        {/* Use regular img tag for base64 images */}
+                        <img
                           src={resizedFile.base64}
                           alt="Resized Image"
                           className="mt-4 max-w-full h-auto rounded-lg shadow-sm"
+                          style={{ maxHeight: "380px" }}
                         />
                         <div className="mt-4 text-xs text-gray-500">
                           <p>
@@ -515,8 +536,8 @@ export default function App() {
                       Got it!
                     </button>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                </DialogPanel>
+              </TransitionChild>
             </div>
           </div>
         </Dialog>

@@ -1,148 +1,138 @@
 "use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
+import ThemeToggleButton from "./ui/theme-toggle-button"; // Assuming this is the correct path
 
-interface NavItem {
-  id: "upload" | "convert" | "resize" | "signature" | "dashboard";
-  label: string;
-}
+// Define the navigation items with paths
+const navItems = [
+  { href: "/upload", label: "Upload" },
+  { href: "/convert", label: "Convert" },
+  { href: "/resize", label: "Resize" },
+  { href: "/signature", label: "Signature" },
+  { href: "/dashboard", label: "Dashboard" },
+];
 
-type TabType = "upload" | "convert" | "resize" | "signature" | "dashboard";
-
+// Define a separate prop type for the component
 interface HeaderProps {
-  activeTab: TabType;
-  setActiveTab: (tab: TabType) => void;
   onProfileClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  setActiveTab,
-  onProfileClick,
-}) => {
+const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
   const { currentUser, userProfile } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname(); // Get the current URL path
 
-  const navItems: NavItem[] = [
-    { id: "upload", label: "Upload" },
-    { id: "convert", label: "Convert" },
-    { id: "resize", label: "Resize" },
-    { id: "signature", label: "Signature" },
-    { id: "dashboard", label: "Dashboard" },
-  ];
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const handleMobileNavClick = (tab: TabType) => {
-    setActiveTab(tab);
-    setIsMobileMenuOpen(false);
-  };
+  const userInitial =
+    userProfile?.displayName?.charAt(0).toUpperCase() ||
+    currentUser?.email?.charAt(0).toUpperCase() ||
+    "U";
 
   return (
-    <header className="bg-[#1a1b60] font-stretch-condensed shadow-lg text-white ">
+    <header className="bg-slate-900 dark:bg-gray-950/70 dark:border-b dark:border-gray-800/50 shadow-lg text-white backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-3">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0 ">
-            <h1 className="text-xl sm:text-2xl text-blue-100 hover:cursor-pointer transition-colors duration-200 hover:text-white">
-              ConvertSign
-            </h1>
-          </div>
+          <Link
+            href="/dashboard"
+            className="text-xl sm:text-2xl font-bold text-sky-50 hover:text-white transition-colors"
+          >
+            ConvertSign 🌀
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
-            <nav className="flex space-x-1 mr-6">
-              {navItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`px-3 xl:px-4 py-2 rounded-md text-sm xl:text-base font-medium transition-all duration-200 ${
-                    activeTab === item.id
+          <nav className="hidden lg:flex items-center space-x-2">
+            {navItems.map(item => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    isActive
                       ? "bg-sky-50 text-blue-600 shadow-sm"
-                      : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+                      : "text-blue-100 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {item.label}
-                </button>
-              ))}
-            </nav>
+                </Link>
+              );
+            })}
+          </nav>
 
+          {/* Right side icons & Mobile Menu button */}
+          <div className="flex items-center space-x-4">
+            <ThemeToggleButton />
             <button
               onClick={onProfileClick}
-              className="flex items-center justify-center bg-sky-50 rounded-full h-10 w-10 text-sky-600 hover:bg-sky-200 transition-colors duration-200 shadow-sm"
+              className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-sky-600 hover:bg-sky-200 transition-colors duration-200 shadow-sm"
               title="User Profile"
             >
-              <span className="font-bold text-sm">
-                {userProfile?.displayName?.charAt(0).toUpperCase() ||
-                  currentUser?.email?.charAt(0).toUpperCase() ||
-                  "U"}
-              </span>
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          <div className="lg:hidden flex items-center space-x-3">
-            <button
-              onClick={onProfileClick}
-              className="flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-sky-600 hover:bg-sky-200 transition-colors duration-200"
-              title="User Profile"
-            >
-              <span className="font-bold text-sm">
-                {userProfile?.displayName?.charAt(0).toUpperCase() ||
-                  currentUser?.email?.charAt(0).toUpperCase() ||
-                  "U"}
-              </span>
+              <span className="font-bold text-base">{userInitial}</span>
             </button>
 
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMobileMenu}
-              className="flex flex-col justify-center items-center w-8 h-8 text-blue-100 hover:text-white transition-colors duration-200"
+              className="lg:hidden p-2 rounded-md text-blue-100 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle menu"
             >
-              <span
-                className={`block w-5 h-0.5 bg-current transition-all duration-200 ${
-                  isMobileMenuOpen ? "rotate-45 translate-y-1" : ""
-                }`}
-              />
-              <span
-                className={`block w-5 h-0.5 bg-current transition-all duration-200 mt-1 ${
-                  isMobileMenuOpen ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`block w-5 h-0.5 bg-current transition-all duration-200 mt-1 ${
-                  isMobileMenuOpen ? "-rotate-45 -translate-y-1" : ""
-                }`}
-              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="4" x2="20" y1="12" y2="12" />
+                <line x1="4" x2="20" y1="6" y2="6" />
+                <line x1="4" x2="20" y1="18" y2="18" />
+              </svg>
             </button>
           </div>
         </div>
 
         {/* Mobile Menu Dropdown */}
         <div
-          className={`lg:hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen
-              ? "max-h-64 opacity-100 pb-4"
-              : "max-h-0 opacity-0 overflow-hidden"
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isMobileMenuOpen ? "max-h-96 pb-4" : "max-h-0"
           }`}
         >
-          <nav className="flex flex-col space-y-2 bg-blue-800/30 rounded-lg p-3">
-            {navItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => handleMobileNavClick(item.id)}
-                className={`text-left px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === item.id
-                    ? "bg-sky-50 text-blue-600 shadow-sm"
-                    : "text-blue-100 hover:text-white hover:bg-blue-700/50"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+          <nav className="flex flex-col space-y-2 bg-white/5 rounded-lg p-2">
+            {navItems.map(item => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`text-left px-4 py-3 rounded-md text-base font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-sky-50 text-blue-600 shadow-sm"
+                      : "text-blue-100 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+            <button
+              onClick={() => {
+                onProfileClick();
+                setIsMobileMenuOpen(false);
+              }}
+              className="text-left px-4 py-3 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10"
+            >
+              Profile
+            </button>
           </nav>
         </div>
       </div>

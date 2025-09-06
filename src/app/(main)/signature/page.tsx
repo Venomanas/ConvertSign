@@ -1,6 +1,7 @@
 // src/components/SignatureCanvas.tsx
+"use client"
 import React, { useState, useRef, useEffect } from "react";
-import { useFileContext } from "../context/FileContext";
+import { useFileContext } from "@/context/FileContext";
 
 // Type definitions
 interface ColorOption {
@@ -24,7 +25,7 @@ interface FileItem {
   processed: boolean;
 }
 
-interface TouchEvent  {
+interface TouchEvent {
   touches: TouchList;
 }
 
@@ -246,7 +247,6 @@ const SignatureCanvas: React.FC = () => {
         ...fileData,
         id: String(fileData.id),
       });
-      
 
       // Clear form
       clearCanvas();

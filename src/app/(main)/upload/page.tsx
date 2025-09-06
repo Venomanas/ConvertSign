@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
-import { useFileContext } from "../context/FileContext";
-import { fileToBase64 } from "../utils/fileUtils";
+import { useFileContext } from "@/context/FileContext";
+import { fileToBase64 } from "@/utils/fileUtils";
 import { ArrowUpTrayIcon } from "@heroicons/react/16/solid";
 
 const FileUploader: React.FC = () => {
@@ -220,43 +220,42 @@ const FileUploader: React.FC = () => {
       </div>
 
       <div className="mt-8">
-          <h3 className="font-bold m-2 p-2 text-purple-600/70">
-            <div className={`how-to-use bg-white rounded-lg p-6 shadow-sm `}>
-              <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
-                Steps to Use
-              </h2>
+        <h3 className="font-bold m-2 p-2 text-purple-600/70">
+          <div className={`how-to-use bg-white rounded-lg p-6 shadow-sm `}>
+            <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
+              Steps to Use
+            </h2>
 
-              <ol className="numbered-steps space-y-6 max-w-2xl mx-auto">
-                {steps.map((step, index) => (
-                  <li
-                    key={index}
-                    className="step-item flex items-start gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors duration-200"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 bg-[#1a1b60] text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="step-title text-lg font-semibold text-gray-800 mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="step-description text-gray-400 leading-relaxed">
-                        {step.description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+            <ol className="numbered-steps space-y-6 max-w-2xl mx-auto">
+              {steps.map((step, index) => (
+                <li
+                  key={index}
+                  className="step-item flex items-start gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors duration-200"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-[#1a1b60] text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="step-title text-lg font-semibold text-gray-800 mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="step-description text-gray-400 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-              <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
-                <p className="text-green-800/80 text-center font-medium">
-                  All files are temporarily stored in your dashboard .
-                </p>
-              </div>
+            <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
+              <p className="text-green-800/80 text-center font-medium">
+                All files are temporarily stored in your dashboard .
+              </p>
             </div>
-          </h3>
-        </div>
+          </div>
+        </h3>
       </div>
-
+    </div>
   );
 };
 export default FileUploader;

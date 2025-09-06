@@ -1,4 +1,4 @@
-import {FormatOption} from '@/components/FileConverter'
+import {FormatOption} from '@/app/(main)/convert/page'
 export interface User{
   name?:string;
   uid:string;

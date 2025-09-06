@@ -57,14 +57,11 @@ const getTransformOrigin = (start: AnimationStart) => {
   }
 }
 
-export const createAnimation = (
+export function createAnimation(
   variant: AnimationVariant,
   start: AnimationStart,
   url?: string
-): Animation => {
-  const svg = generateSVG(variant, start)
-  const transformOrigin = getTransformOrigin(start)
-
+): Animation {
   if (variant === "polygon") {
     return {
       name: `${variant}-${start}`,
@@ -105,7 +102,7 @@ export const createAnimation = (
         }
       }
       `,
-    }
+    };
   }
   if (variant === "circle" && start == "center") {
     return {
@@ -147,7 +144,7 @@ export const createAnimation = (
         }
       }
       `,
-    }
+    };
   }
   if (variant === "gif") {
     return {
@@ -181,8 +178,10 @@ export const createAnimation = (
     mask-size: 2000vmax;
   }
 }`,
-    }
+    };
   }
+    const svg = generateSVG(variant, start);
+    const transformOrigin = getTransformOrigin(start);
 
   return {
     name: `${variant}-${start}`,
@@ -194,12 +193,12 @@ export const createAnimation = (
         mask: url('${svg}') ${start.replace("-", " ")} / 0 no-repeat;
         mask-origin: content-box;
         animation: scale-${start} 1s;
-        transform-origin: ${transformOrigin};
+        transform-origin: ${transformOrigin}; /* <-- Corrected this line */
       }
       ::view-transition-old(root),
       .dark::view-transition-old(root) {
         animation: scale-${start} 1s;
-        transform-origin: ${transformOrigin};
+        transform-origin: ${transformOrigin}; /* <-- Corrected this line */
         z-index: -1;
       }
       @keyframes scale-${start} {
@@ -208,5 +207,5 @@ export const createAnimation = (
         }
       }
     `,
-  }
+  };
 }

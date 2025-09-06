@@ -136,15 +136,15 @@ const FileUploader: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-8 ">
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200 dark:bg-slate-400">
+      <h2 className="text-3xl font-bold tracking-tight text-slate-800 text-center mb-8 ">
         Upload Your Files
       </h2>
 
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
           dragActive
-            ? "border-indigo-500 bg-indigo-50"
+            ? "border-slate-500 bg-indigo-50"
             : "border-gray-300 bg-gray-50"
         } transition-all duration-200 flex flex-col items-center justify-center`}
         onDragEnter={handleDrag}
@@ -152,7 +152,7 @@ const FileUploader: React.FC = () => {
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <div className="flex flex-col items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center text-center ">
           <ArrowUpTrayIcon
             className={`w-16 h-16 mb-4 transition-colors duration-200 ${
               dragActive ? "text-indigo-600" : "text-gray-400"

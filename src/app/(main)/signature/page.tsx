@@ -281,7 +281,7 @@ const SignatureCanvas: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-400">
         Create Signature
       </h2>
 
@@ -350,7 +350,7 @@ const SignatureCanvas: React.FC = () => {
 
         {/* Sidebar Controls */}
         <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4 text-background">
+          <h3 className="text-lg font-semibold mb-4 text-black">
             Signature Options
           </h3>
 
@@ -437,7 +437,7 @@ const SignatureCanvas: React.FC = () => {
           {/* Save Button */}
           <button
             onClick={saveSignature}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors"
             type="button"
           >
             Save Signature
@@ -457,7 +457,7 @@ const SignatureCanvas: React.FC = () => {
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-slate-400">
           About Digital Signatures
         </h3>
         <div className="bg-white p-4 rounded-lg text-sm text-gray-900 shadow-sm">

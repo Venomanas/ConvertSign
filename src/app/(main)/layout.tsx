@@ -29,7 +29,7 @@ export default function MainAppLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-sky-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div className="min-h-screen flex flex-col bg-indigo-100 dark:bg-gray-900">
       {/* The Header now only needs the onProfileClick prop! */}
       <Header onProfileClick={() => setShowProfile(true)} />
 

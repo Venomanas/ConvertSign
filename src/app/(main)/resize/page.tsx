@@ -330,7 +330,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
               <button
                 onClick={handleSave}
                 disabled={width <= 0 || height <= 0}
-                className="flex-1 py-3 px-6 rounded-xl bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-all"
+                className="flex-1 py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold shadow-md  disabled:bg-blue-300 disabled:cursor-not-allowed transition-all"
               >
                 Apply Resize
               </button>
@@ -430,7 +430,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 min-h-screen bg-gray-100 font-sans">
+    <div className="flex flex-col items-center justify-center p-8 min-h-screen bg-gray-100 dark:bg-slate-400 font-sans">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Image Resizer</h1>
 
       {!file && (

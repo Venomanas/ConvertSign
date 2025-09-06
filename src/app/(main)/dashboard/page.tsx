@@ -337,7 +337,7 @@ const DashboardContent = (): JSX.Element => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-8">
+      <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-8 dark:text-slate-400">
         Your Dashboard
       </h2>
 
@@ -345,23 +345,25 @@ const DashboardContent = (): JSX.Element => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="relative flex-grow">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ">
-            <MagnifyingGlassIcon className="h-5 w-5 text-blue-500" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-blue-500 dark:text-slate-400" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search files..."
-            className="block w-full rounded-md border-red-800 pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+            className="block w-full rounded-md border-red-800 pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black dark:text-slate-100 dark:placeholder-gray-400"
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-900">Sort by:</span>
-          <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-900 dark:text-slate-400">
+            Sort by:
+          </span>
+          <div className="flex items-center space-x-2 ">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortBy)}
-              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
+              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-slate-100 text-black dark:bg-slate-400 dark:text-slate-800"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -395,7 +397,7 @@ const DashboardContent = (): JSX.Element => {
               className={`group inline-flex items-center gap-2 py-2 px-3 border-b-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                 activeTab === tab.id
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400"
               }`}
             >
               {React.cloneElement(tab.icon as JSX.Element, {
@@ -505,7 +507,7 @@ const DashboardContent = (): JSX.Element => {
               </div>
             ))}
           </div>
-          <p className="mt-8 text-sm text-gray-500 text-center">
+          <p className="mt-8 text-sm text-gray-500 text-center dark:text-slate-400">
             Showing {filteredFiles.length} of {files.length} files
           </p>
         </>

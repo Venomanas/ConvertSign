@@ -1,5 +1,6 @@
 'use client'
 import { useAuth } from '@/context/AuthContext'
+import Image from 'next/image';
 import React from 'react'
 
 interface userProfileProps{
@@ -12,12 +13,14 @@ const UserProfile: React.FC<userProfileProps>=({ onClose}) => {
         await signOut();
     } 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+    <div className=' min-h-screen mx-auto my-auto'> 
+    
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-auto">
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
         <button
           onClick={onClose}
-          className="text-gray-300 hover:text-emerald-500 hover:bg-sky-50 rounded-2xl"
+          className="text-indigo-300 hover:text-indigo-500 hover:bg-sky-50 rounded-2xl"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +41,7 @@ const UserProfile: React.FC<userProfileProps>=({ onClose}) => {
 
       <div className="border-t border-b py-4 my-4">
         <div className="flex items-center mb-4">
-          <div className="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
+          <div className="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
             {userProfile?.displayName?.charAt(0).toUpperCase() || "U"}
           </div>
           <div className="ml-4">
@@ -67,6 +70,14 @@ const UserProfile: React.FC<userProfileProps>=({ onClose}) => {
           Sign Out
         </button>
       </div>
+    </div>
+    <Image
+     src={"pro4.svg"}
+     alt="Upload Files"
+     width={300}
+     height={300}
+     className="mx-auto mb-50 mt-50 top-1 transition-transform duration-300 group-hover:scale-110 "
+    />
     </div>
   );
 }

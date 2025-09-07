@@ -24,6 +24,7 @@ import {
   ArrowPathIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
 // import Image from "next/image";
 
 // Define the file object interface
@@ -255,7 +256,7 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
         {isLoading ? (
           <div className="flex justify-center items-center h-48">
             <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500 mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-500 mb-4"></div>
               <p className="text-gray-600 font-medium">Loading image...</p>
             </div>
           </div>
@@ -430,7 +431,15 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 min-h-screen bg-white-100 dark:bg-slate-400 font-sans">
+    <div className="flex flex-col items-center justify-center p-8 min-h-screen dark:bg-slate-50 font-sans">
+       <Image
+       src={"resize.svg"}
+       alt="Upload Files"
+       width={250}
+       height={250}
+       className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
+       />
+       
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Image Resizer</h1>
 
       {!file && (
@@ -543,6 +552,7 @@ export default function App() {
           </div>
         </Dialog>
       </Transition>
+      
     </div>
   );
 }

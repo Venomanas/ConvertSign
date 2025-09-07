@@ -3,6 +3,8 @@
 import { useFileContext } from "@/context/FileContext";
 import React, { useState } from "react";
 import { FileObject } from "@/utils/authUtils";
+import Image from "next/image";
+import router from "next/router";
 
 //define type for target formats
 export type FormatOption =
@@ -138,9 +140,13 @@ const FileConverter: React.FC = () => {
       {files.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-600">No files available for conversion.</p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-red-500 text-sm mt-2">
             Please upload files first.
           </p>
+          <button
+            onClick={() => router.push("/upload")}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
+          > Click here to Upload </button>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-8">
@@ -303,7 +309,13 @@ const FileConverter: React.FC = () => {
         <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-slate-400">
           About File Conversion
         </h3>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
+        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm"><Image
+                  src={"convert1.svg"}
+                  alt="Upload Files"
+                  width={150}
+                  height={150}
+                  className="mx-auto mb-3  transition-transform duration-300 group-hover:scale-110 "
+                  />
           <p className="mb-2">convert files between various formats:</p>
           <ul className="list-disc pl-5 mb-2 space-y-1">
             <li>Convert JPG, PNG, WebP, and more</li>

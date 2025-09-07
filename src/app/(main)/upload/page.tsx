@@ -4,6 +4,7 @@ import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { useFileContext } from "@/context/FileContext";
 import { fileToBase64 } from "@/utils/fileUtils";
 import { ArrowUpTrayIcon } from "@heroicons/react/16/solid";
+import Image from "next/image";
 
 const FileUploader: React.FC = () => {
   const { addFile } = useFileContext();
@@ -199,6 +200,13 @@ const FileUploader: React.FC = () => {
         <h3 className="text-xl font-bold text-gray-800 mb-4">
           Supported File Types
         </h3>
+        <Image
+          src={"support.svg"}
+          alt="Upload Files"
+          width={150}
+          height={150}
+          className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
+          />
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm ">
           <div className="bg-blue-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Images (JPG, PNG, GIF)

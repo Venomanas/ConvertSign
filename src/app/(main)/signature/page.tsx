@@ -2,6 +2,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from "react";
 import { useFileContext } from "@/context/FileContext";
+import Image from "next/image";
 
 // Type definitions
 interface ColorOption {
@@ -335,7 +336,14 @@ const SignatureCanvas: React.FC = () => {
             >
               Hide Controls
             </button>
-          </div>
+             </div>
+             <Image
+              src={"paint.svg"}
+              alt="Upload Files"
+              width={100}
+              height={100}
+              className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
+               />
 
           {/* Show Controls Button (only appears when controls are hidden) */}
           <div className={`mt-4 ${showControls ? "hidden" : ""}`}>

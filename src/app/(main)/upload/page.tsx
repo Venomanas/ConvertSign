@@ -146,20 +146,20 @@ const FileUploader: React.FC = () => {
           dragActive
             ? "border-slate-500 bg-indigo-50"
             : "border-gray-300 bg-gray-50"
-        } transition-all duration-200 flex flex-col items-center justify-center`}
+        } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-300 bg-slate-100 `}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <div className="flex flex-col items-center justify-center text-center ">
+        <div className="flex flex-col items-center justify-center text-center  ">
           <ArrowUpTrayIcon
-            className={`w-16 h-16 mb-4 transition-colors duration-200 ${
-              dragActive ? "text-indigo-600" : "text-gray-400"
+            className={`w-16 h-16 mb-4 transition-colors duration-200  ${
+              dragActive ? "text-indigo-400" : "text-gray-400 dark:text-slate-900"
             }`}
           />
           <p className="mb-2 text-black text-center">
-            <span className="font-semibold text-indigo-600">drag and drop</span>{" "}
+            <span className="font-semibold text-indigo-400">drag and drop</span>{" "}
           </p>
           <p className="text-xs max-w-sm text-black mb-4 text-center p-2 ">
             PNG, JPG, PDF, DOCX, and more. All files are processed securely.
@@ -167,7 +167,7 @@ const FileUploader: React.FC = () => {
         </div>
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-[#1a1b60] text-white hover:text-[#1a1b60] rounded-md hover:bg-sky-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-colors "
+          className="px-4 py-2 bg-slate-900 text-white rounded-md dark:hover:bg-white hover:text-slate-900 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors "
           disabled={isUploading}
         >
           {isUploading ? "Uploading..." : "Click to upload "}
@@ -186,13 +186,12 @@ const FileUploader: React.FC = () => {
         <div className="mt-6">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-blue-400 h-2.5 rounded-full transition-all duration-300"
+              className="indigo-800 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
-            ></div>
-          </div>
-          <p className="mt-2 text-sm text-center text-gray-900">
+            > <p className="mt-2 text-sm text-center text-gray-900">
             Uploading... {uploadProgress}%
-          </p>
+                 </p> </div>
+          </div>
         </div>
       )}
 
@@ -204,24 +203,24 @@ const FileUploader: React.FC = () => {
           <div className="bg-blue-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Images (JPG, PNG, GIF)
           </div>
-          <div className="bg-green-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-pink-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Documents (PDF, DOC)
           </div>
-          <div className="bg-yellow-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-blue-200  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Spreadsheets (XLS, XLSX)
           </div>
           <div className="bg-purple-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Presentations (PPT, PPTX)
           </div>
-          <div className="bg-red-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-indigo-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Text files (TXT)
           </div>
         </div>
       </div>
 
       <div className="mt-8">
-        <h3 className="font-bold m-2 p-2 text-purple-600/70">
-          <div className={`how-to-use bg-white rounded-lg p-6 shadow-sm `}>
+        <h3 className="font-bold m-2 p-2 ">
+          <div className={`how-to-use bg-indigo-100 dark:bg-slate-300 rounded-lg p-6 shadow-sm `}>
             <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
               Steps to Use
             </h2>

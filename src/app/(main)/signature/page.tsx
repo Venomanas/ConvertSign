@@ -444,14 +444,15 @@ const SignatureCanvas: React.FC = () => {
           </button>
 
           {/* Instructions */}
-          <div className="mt-6 text-sm text-gray-600">
-            <h4 className="font-medium mb-1">Tips:</h4>
+          <div className="mt-6 text-sm text-gray-600 bg-indigo-100 rounded-2xl object-contain">
+            <div className="mt-1 px-2 py-1 mb-1">
             <ul className="list-disc pl-5 space-y-1">
               <li>Use your mouse or finger to draw</li>
               <li>Clear button erases everything</li>
               <li>Try different colors and sizes</li>
               <li>Name your signature before saving</li>
             </ul>
+            </div>
           </div>
         </div>
       </div>

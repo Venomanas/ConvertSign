@@ -156,7 +156,7 @@ const FileConverter: React.FC = () => {
                   onClick={() => handleFileSelect(file.id)}
                   className={`flex items-center p-3 mb-2 rounded-md cursor-pointer transition-colors ${
                     selectedFile?.id === file.id
-                      ? "bg-white hover:bg-blue-200 border border-blue-300"
+                      ? "bg-white hover:bg-indigo-100 border border-indigo-300"
                       : "bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
@@ -234,7 +234,7 @@ const FileConverter: React.FC = () => {
               <>
                 <div className="mb-4">
                   <p className="mb-2 text-sm text-black">Selected File:</p>
-                  <div className="p-3 bg-blue-50 rounded-md">
+                  <div className="p-3 bg-indigo-50 rounded-md">
                     <p className="font-medium text-black">
                       {selectedFile.name}
                     </p>
@@ -252,11 +252,18 @@ const FileConverter: React.FC = () => {
                   <select
                     value={targetFormat}
                     onChange={handleFormatChange}
-                    className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                   >
-                    <option value="">Select target format</option>
+                    <option
+                      value=""
+                    >
+                      Select target format
+                    </option>
                     {getTargetFormats(selectedFile.type).map(format => (
-                      <option key={format} value={format}>
+                      <option
+                        key={format}
+                        value={format}         
+                      >
                         {format.toUpperCase()}
                       </option>
                     ))}
@@ -297,22 +304,18 @@ const FileConverter: React.FC = () => {
           About File Conversion
         </h3>
         <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
-          <p className="mb-2">
-            Our file conversion tool allows you to convert files between various
-            formats:
-          </p>
+          <p className="mb-2">convert files between various formats:</p>
           <ul className="list-disc pl-5 mb-2 space-y-1">
-            <li>Convert images between JPG, PNG, WebP, and more</li>
+            <li>Convert JPG, PNG, WebP, and more</li>
             <li>Convert documents between PDF, DOC, and TXT formats</li>
             <li>Convert spreadsheets to CSV or PDF</li>
             <li>Convert presentations to PDF or image formats</li>
           </ul>
           <p>
-            All conversions are processed securely and your files are never
-            stored permanently.
+            All conversions are processed securely at your browser local storage
           </p>
           <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
-            <p className="text-center font-medium m-2 p-2 text-purple-600/70">
+            <p className="text-center font-medium m-2 p-2 ">
               After conversion all the files will be displayed at Dashboard
             </p>
           </div>

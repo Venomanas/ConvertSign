@@ -1,12 +1,8 @@
+//dashboard.tsx
+
 "use client";
 
-import React, {
-  JSX,
-  useState,
-  createContext,
-  useContext,
-  useEffect,
-} from "react";
+import React, { JSX, useState, useEffect } from "react";
 import Image from "next/image";
 import {
   PhotoIcon,
@@ -21,8 +17,14 @@ import {
   ArrowUpTrayIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
+import { useFileContext } from "@/context/FileContext";
+import { useAuth } from "@/context/AuthContext";
+import { downloadFile } from "@/utils/fileUtils";
+import { FileObject } from "@/utils/authUtils";
+import { useRouter } from "next/navigation";
 
-// Mock implementations to make the component self-contained
+
+// Helper function to format bytes
 const formatBytes = (bytes: number, decimals: number = 2) => {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -31,35 +33,6 @@ const formatBytes = (bytes: number, decimals: number = 2) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
-
-const downloadFile = (base64: string, name: string) => {
-  const link = document.createElement("a");
-  link.href = base64;
-  link.download = name;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-// Mock FileContext and its hook for demonstration
-interface FileObject {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  base64: string;
-  dateAdded: string | Date;
-  processed?: boolean;
-  isSignature?: boolean;
-}
-
-interface FileContextType {
-  files: FileObject[];
-  removeFile: (id: string) => void;
-  addFile: (file: FileObject) => void;
-}
-
-const FileContext = createContext<FileContextType | undefined>(undefined);
 
 interface Base64ImageProps {
   src: string;
@@ -78,6 +51,9 @@ const Base64Image = ({ src, alt, className }: Base64ImageProps) => {
     const img = document.createElement("img");
     img.onload = () => {
       setDimensions({ width: img.width, height: img.height });
+      setIsLoading(false);
+    };
+    img.onerror = () => {
       setIsLoading(false);
     };
     img.src = src;
@@ -102,107 +78,6 @@ const Base64Image = ({ src, alt, className }: Base64ImageProps) => {
       className={className}
     />
   );
-};
-
-const mockFiles: FileObject[] = [
-  {
-    id: "1",
-    name: "report.pdf",
-    type: "application/pdf",
-    size: 150000,
-    base64: "data:application/pdf;base64,...",
-    dateAdded: "2023-01-15T10:00:00Z",
-    processed: false,
-  },
-  {
-    id: "2",
-    name: "photo.jpg",
-    type: "image/jpeg",
-    size: 2500000,
-    base64: "data:image/jpeg;base64,...",
-    dateAdded: "2023-01-16T11:30:00Z",
-    processed: true,
-  },
-  {
-    id: "3",
-    name: "signature.png",
-    type: "image/png",
-    size: 12000,
-    base64: "data:image/png;base64,...",
-    dateAdded: "2023-01-17T12:00:00Z",
-    isSignature: true,
-  },
-  {
-    id: "4",
-    name: "presentation.pptx",
-    type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    size: 500000,
-    base64:
-      "data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,...",
-    dateAdded: "2023-01-18T13:00:00Z",
-    processed: false,
-  },
-  {
-    id: "5",
-    name: "invoice.pdf",
-    type: "application/pdf",
-    size: 300000,
-    base64: "data:application/pdf;base64,...",
-    dateAdded: "2023-01-19T14:00:00Z",
-    processed: true,
-    isSignature: true,
-  },
-  {
-    id: "6",
-    name: "drawing.svg",
-    type: "image/svg+xml",
-    size: 25000,
-    base64: "data:image/svg+xml;base64,...",
-    dateAdded: "2023-01-20T15:00:00Z",
-    processed: false,
-  },
-  {
-    id: "7",
-    name: "report_new.pdf",
-    type: "application/pdf",
-    size: 180000,
-    base64: "data:application/pdf;base64,...",
-    dateAdded: "2023-01-21T16:00:00Z",
-    processed: false,
-  },
-  {
-    id: "8",
-    name: "image_2.jpeg",
-    type: "image/jpeg",
-    size: 2100000,
-    base64: "data:image/jpeg;base64,...",
-    dateAdded: "2023-01-22T17:00:00Z",
-    processed: true,
-  },
-];
-
-// Context Provider for demonstration
-const FileProvider = ({ children }: { children: React.ReactNode }) => {
-  const [files, setFiles] = useState(mockFiles);
-  const removeFile = (id: string) => {
-    setFiles(prevFiles => prevFiles.filter(file => file.id !== id));
-  };
-  const addFile = (file: FileObject) => {
-    setFiles(prevFiles => [...prevFiles, file]);
-  };
-  return (
-    <FileContext.Provider value={{ files, removeFile, addFile }}>
-      {children}
-    </FileContext.Provider>
-  );
-};
-
-const useFileContext = () => {
-  const context = useContext(FileContext);
-  if (!context) {
-    throw new Error("useFileContext must be used within a FileProvider");
-  }
-  return context;
 };
 
 // Define types for type safety
@@ -238,13 +113,24 @@ const getFileIcon = (file: FileObject): JSX.Element => {
 
 const DashboardContent = (): JSX.Element => {
   const { files, removeFile } = useFileContext();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortBy>("dateAdded");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
 
   const handleDownload = (file: FileObject): void => {
-    downloadFile(file.base64, file.name);
+    try {
+      // Extract filename and type from the file object
+      const fileName = file.name;
+      const fileType = file.type;
+
+      // Use the downloadFile utility from fileUtils
+      downloadFile(file.base64, fileName, fileType);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert("Failed to download file. Please try again.");
+    }
   };
 
   const handleDelete = (fileId: string): void => {
@@ -333,13 +219,37 @@ const DashboardContent = (): JSX.Element => {
     },
   ];
 
+  const router = useRouter();
+
   const filteredFiles = getFilteredFiles();
 
+  // Show login message if user is not authenticated
+  if (!currentUser) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-lg font-semibold text-gray-900">
+            Please sign in to view your dashboard
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Sign in to access your uploaded files and dashboard features.
+          </p>
+        </div>
+      </div>
+    );
+  }
+   
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-8 dark:text-slate-400">
-        Your Dashboard
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center dark:text-slate-400">
+          Your Dashboard
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-500">
+          Welcome back, {currentUser.email}! Manage your uploaded files here.
+        </p>
+      </div>
 
       {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -421,17 +331,28 @@ const DashboardContent = (): JSX.Element => {
             No files yet
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            Upload files to get started.
+            Upload files to get started with your dashboard.
           </p>
+          <button
+            onClick={() => router.push("/upload")}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
+          >
+            <ArrowUpTrayIcon className="w-4 h-4" />
+            Upload Your First File
+          </button>
         </div>
       ) : filteredFiles.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-2 text-sm font-semibold text-gray-900">
-            No files match your search.
+            No files match your search or filter criteria.
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Try adjusting your search or changing the active tab.
           </p>
         </div>
       ) : (
+        //onClick={() => router.push('/upload')}
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFiles.map(file => (
@@ -440,7 +361,7 @@ const DashboardContent = (): JSX.Element => {
                 className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group"
               >
                 {/* File Preview */}
-                <div className="h-44 bg-gray-100 flex items-center justify-center relative p-4">
+                <div className="h-44 bg-muted/40 flex items-center justify-center relative p-4">
                   {file.type.startsWith("image/") ? (
                     <Base64Image
                       src={file.base64}
@@ -450,32 +371,46 @@ const DashboardContent = (): JSX.Element => {
                   ) : (
                     <div className="text-4xl">{getFileIcon(file)}</div>
                   )}
-                  {file.processed && (
-                    <div className="absolute top-3 right-3 bg-indigo-500 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      Processed
-                    </div>
-                  )}
-                  {file.isSignature && (
-                    <div className="absolute top-3 left-3 bg-rose-500 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      Signature
-                    </div>
-                  )}
+
+                  {/* Badges */}
+                  <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
+                    {file.processed && (
+                      <div className="bg-green-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Processed
+                      </div>
+                    )}
+                    {file.isSignature && (
+                      <div className="bg-purple-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Signature
+                      </div>
+                    )}
+                    {file.convertedFormat && (
+                      <div className="bg-blue-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Converted
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* File Info */}
-                <div className="p-5 border-t border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="p-5 border-t border-border flex flex-col flex-grow">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p
-                        className="font-semibold text-gray-900 truncate"
+                        className="font-semibold text-slate-900 truncate"
                         title={file.name}
                       >
                         {file.name}
                       </p>
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {formatBytes(file.size)} •{" "}
                         {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
                       </p>
+                      {file.convertedFormat && (
+                        <p className="mt-1 text-xs text-blue-600">
+                          Converted to: {file.convertedFormat.toUpperCase()}
+                        </p>
+                      )}
                     </div>
                     <div className="ml-4 flex-shrink-0 text-gray-400">
                       {getFileIcon(file)}
@@ -486,18 +421,25 @@ const DashboardContent = (): JSX.Element => {
                     Added: {new Date(file.dateAdded).toLocaleDateString()}
                   </p>
 
+                  {file.dateProccessed && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Processed:{" "}
+                      {new Date(file.dateProccessed).toLocaleDateString()}
+                    </p>
+                  )}
+
                   {/* Actions */}
-                  <div className="mt-4 flex gap-2 justify-end">
+                  <div className="mt-4 pt-3 border-t border-border/50 flex gap-2 justify-end">
                     <button
                       onClick={() => handleDownload(file)}
-                      className="flex-1 inline-flex items-center justify-center gap-1 py-2 px-3 rounded-md bg-indigo-500 text-white text-sm font-semibold hover:bg-indigo-600 transition-colors duration-200"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm font-semibold transition-colors duration-200 hover:bg-indigo-700"
                     >
                       <ArrowDownTrayIcon className="w-4 h-4" />
                       Download
                     </button>
                     <button
                       onClick={() => handleDelete(file.id)}
-                      className="flex-1 inline-flex items-center justify-center gap-1 py-2 px-3 rounded-md bg-white border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors duration-200"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-50 text-red-600 border border-red-200 text-sm font-semibold transition-colors duration-200 hover:bg-red-100 dark:hover:bg-slate-800 dark:bg-slate-700 dark:text-red-400 dark:border-red-600"
                     >
                       <TrashIcon className="w-4 h-4" />
                       Delete
@@ -517,9 +459,5 @@ const DashboardContent = (): JSX.Element => {
 };
 
 export default function Dashboard(): JSX.Element {
-  return (
-    <FileProvider>
-      <DashboardContent />
-    </FileProvider>
-  );
+  return <DashboardContent />;
 }

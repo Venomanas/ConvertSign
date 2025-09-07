@@ -430,13 +430,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 min-h-screen bg-gray-100 dark:bg-slate-400 font-sans">
+    <div className="flex flex-col items-center justify-center p-8 min-h-screen bg-white-100 dark:bg-slate-400 font-sans">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Image Resizer</h1>
 
       {!file && (
         <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-md border border-gray-200 text-center">
           <label htmlFor="file-upload" className="block w-full cursor-pointer">
-            <div className="bg-blue-600 text-white rounded-lg px-6 py-3 font-semibold hover:bg-blue-700 transition-colors">
+            <div className="bg-indigo-600 dark:bg-slate-500 dark:hover:bg-slate-700 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700 transition-colors">
               Select an Image to Resize
             </div>
           </label>

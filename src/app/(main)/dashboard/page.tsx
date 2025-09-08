@@ -1,5 +1,3 @@
-//dashboard.tsx
-
 "use client";
 
 import React, { JSX, useState, useEffect } from "react";
@@ -359,7 +357,7 @@ const DashboardContent = (): JSX.Element => {
           </p>
         </div>
       ) : (
-        //onClick={() => router.push('/upload')}
+        // onClick={() => router.push('/upload')}
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFiles.map(file => (

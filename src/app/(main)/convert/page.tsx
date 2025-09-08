@@ -4,7 +4,7 @@ import { useFileContext } from "@/context/FileContext";
 import React, { useState } from "react";
 import { FileObject } from "@/utils/authUtils";
 import Image from "next/image";
-import router from "next/router";
+import {useRouter} from "next/navigation";
 
 //define type for target formats
 export type FormatOption =
@@ -17,13 +17,15 @@ export type FormatOption =
   | "docx"
   | "txt"
   | "csv";
-
-const FileConverter: React.FC = () => {
+  
+  const FileConverter: React.FC = () => {
+  const router = useRouter();
   const { files, updateFile } = useFileContext();
   const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
   const [targetFormat, setTargetFormat] = useState<FormatOption | "">("");
   const [isConverting, setIsConverting] = useState(false);
   const [conversionError, setConversionError] = useState("");
+
 
   //list of possible target formats based on file type
   const getTargetFormats = (fileType: string): FormatOption[] => {
@@ -75,7 +77,7 @@ const FileConverter: React.FC = () => {
   const getOriginalFormat = (file: FileObject | null): string => {
     if (!file) return "";
 
-    const typeMap: Record<string, string> = {
+  const typeMap: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
       "image/webp": "webp",
@@ -136,7 +138,6 @@ const FileConverter: React.FC = () => {
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-400">
         Convert Files
       </h2>
-
       {files.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-600">No files available for conversion.</p>

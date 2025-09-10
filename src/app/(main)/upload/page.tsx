@@ -5,13 +5,20 @@ import { useFileContext } from "@/context/FileContext";
 import { fileToBase64 } from "@/utils/fileUtils";
 import { ArrowUpTrayIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
+import { UploadActionModal } from "@/components/providers/UploadActionModal";
+import { useRouter } from "next/navigation";
 
 const FileUploader: React.FC = () => {
+  const router = useRouter();
   const { addFile } = useFileContext();
   const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress] = useState(0);
+  const [isUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  //to hold sleceted files and show the modal
+  const [filesReadyForAction, setFilesReadyForAction] =
+    useState<FileList | null>(null);
 
   // Accepted file types
   const acceptedFileTypes = [
@@ -46,39 +53,30 @@ const FileUploader: React.FC = () => {
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      await handleFiles(e.dataTransfer.files);
-    }
+    if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
   };
 
   const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (e.target.files && e.target.files.length > 0) {
-      await handleFiles(e.target.files);
-    }
+    if (e.target.files?.length) handleFiles(e.target.files);
   };
 
   const handleFiles = async (files: FileList) => {
-    setIsUploading(true);
-    setUploadProgress(0);
+    setFilesReadyForAction(files);
+  };
+  // This function runs when a user clicks an action button in the modal
+  const handleAction = async(action: "convert" | "resize" | "dashboard") => {
+    if (!filesReadyForAction) return;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Check if file type is accepted
+    for (let i=0; i<filesReadyForAction.length; i++)
+    {
+      const file = filesReadyForAction[i];
       if (!acceptedFileTypes.includes(file.type)) {
         alert(`File type ${file.type} is not supported!`);
         continue;
       }
-
       try {
-        // Convert file to base64 for preview and manipulation
         const base64 = await fileToBase64(file);
-
-        // Simulate upload progress
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
-
-        // Add file to context
         addFile({
           id: `${Date.now()}-${i}`,
           name: file.name,
@@ -90,23 +88,21 @@ const FileUploader: React.FC = () => {
           isSignature: false,
         });
       } catch (error) {
-        console.error("Error processing file:", error);
+        console.error("Error processing file:",error);
       }
-    }
+      }
 
-    setTimeout(() => {
-      setIsUploading(false);
-      setUploadProgress(0);
-      // Reset file input
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
-    }, 500);
-  };
+      //close modal
+      setFilesReadyForAction(null);
+      if(inputRef.current) inputRef.current.value="";
+
+      //navigating to chosen option
+      router.push(`/${action}`)
+    };
 
   const handleButtonClick = () => {
     if (inputRef.current) {
-      inputRef.current.click();
+      inputRef.current?.click();
     }
   };
   interface Step {
@@ -156,7 +152,9 @@ const FileUploader: React.FC = () => {
         <div className="flex flex-col items-center justify-center text-center  ">
           <ArrowUpTrayIcon
             className={`w-16 h-16 mb-4 transition-colors duration-200  ${
-              dragActive ? "text-indigo-400" : "text-gray-400 dark:text-slate-900"
+              dragActive
+                ? "text-indigo-400"
+                : "text-gray-400 dark:text-slate-900"
             }`}
           />
           <p className="mb-2 text-black text-center">
@@ -169,9 +167,9 @@ const FileUploader: React.FC = () => {
         <button
           onClick={handleButtonClick}
           className="px-4 py-2 bg-slate-900 text-white rounded-md dark:hover:bg-white hover:text-slate-900 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors "
-          disabled={isUploading}
+          // disabled={isUploading}
         >
-          {isUploading ? "Uploading..." : "Click to upload "}
+          Click to upload
         </button>
 
         <input
@@ -189,9 +187,12 @@ const FileUploader: React.FC = () => {
             <div
               className="indigo-800 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
-            > <p className="mt-2 text-sm text-center text-gray-900">
-            Uploading... {uploadProgress}%
-                 </p> </div>
+            >
+              {" "}
+              <p className="mt-2 text-sm text-center text-gray-900">
+                Uploading... {uploadProgress}%
+              </p>{" "}
+            </div>
           </div>
         </div>
       )}
@@ -206,7 +207,7 @@ const FileUploader: React.FC = () => {
           width={150}
           height={150}
           className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
-          />
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm ">
           <div className="bg-blue-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
             Images (JPG, PNG, GIF)
@@ -228,7 +229,9 @@ const FileUploader: React.FC = () => {
 
       <div className="mt-8">
         <h3 className="font-bold m-2 p-2 ">
-          <div className={`how-to-use bg-indigo-100 dark:bg-slate-300 rounded-lg p-6 shadow-sm `}>
+          <div
+            className={`how-to-use bg-indigo-100 dark:bg-slate-300 rounded-lg p-6 shadow-sm `}
+          >
             <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
               Steps to Use
             </h2>
@@ -262,6 +265,16 @@ const FileUploader: React.FC = () => {
           </div>
         </h3>
       </div>
+
+      {filesReadyForAction && (
+        <UploadActionModal
+          fileCount={filesReadyForAction.length}
+          onConvert={() => handleAction("convert")}
+          onResize={() => handleAction("resize")}
+          onGoToDashboard={() => handleAction("dashboard")}
+          onCancel={() => setFilesReadyForAction(null)}
+        />
+      )}
     </div>
   );
 };

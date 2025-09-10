@@ -21,7 +21,6 @@ import { downloadFile } from "@/utils/fileUtils";
 import { FileObject } from "@/utils/authUtils";
 import { useRouter } from "next/navigation";
 
-
 // Helper function to format bytes
 const formatBytes = (bytes: number, decimals: number = 2) => {
   if (bytes === 0) return "0 Bytes";
@@ -237,41 +236,41 @@ const DashboardContent = (): JSX.Element => {
       </div>
     );
   }
-   
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center dark:text-slate-400">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center dark:text-slate-300">
           Your Dashboard
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-500">
+        <p className="mt-2 text-center text-sm text-green-500 dark:text-green-300">
           Welcome back, {currentUser.email}! Manage your uploaded files here.
         </p>
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ">
-            <MagnifyingGlassIcon className="h-5 w-5 text-blue-500 dark:text-slate-400" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white rounded-md outline-none">
+        <div className="relative flex flex-grow rounded-full ">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none rounded-full">
+            <MagnifyingGlassIcon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search files..."
-            className="block w-full rounded-md border-red-800 pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black dark:text-slate-100 dark:placeholder-gray-400"
+            className="block w-full rounded-md pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:ring-indigo-500 sm:text-sm text-black dark:text-black dark:placeholder-slate-700"
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-900 dark:text-slate-400">
+          <span className="text-sm text-gray-900 dark:text-slate-700">
             Sort by:
           </span>
           <div className="flex items-center space-x-2 ">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortBy)}
-              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-slate-100 text-black dark:bg-slate-400 dark:text-slate-800"
+              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-slate-100 text-black dark:bg-slate-200 dark:text-slate-800"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -282,7 +281,7 @@ const DashboardContent = (): JSX.Element => {
               onClick={() =>
                 setSortDirection(sortDirection === "asc" ? "desc" : "asc")
               }
-              className="p-2 rounded-md hover:bg-gray-100"
+              className="p-2 rounded-md dark:hover:bg-indigo-100 hover:bg-slate-100"
               aria-label="Toggle sort direction"
             >
               {sortDirection === "asc" ? (
@@ -296,7 +295,7 @@ const DashboardContent = (): JSX.Element => {
       </div>
 
       {/* Tab navigation */}
-      <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+      <div className="mb-6 border-b border-gray-200 overflow-x-auto bg-white rounded-sm  ">
         <nav className="-mb-px flex space-x-4">
           {tabs.map(tab => (
             <button
@@ -305,14 +304,14 @@ const DashboardContent = (): JSX.Element => {
               className={`group inline-flex items-center gap-2 py-2 px-3 border-b-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                 activeTab === tab.id
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400"
+                  : "border-transparent text-black hover:text-gray-700 hover:border-indigo-300 dark:text-black"
               }`}
             >
               {React.cloneElement(tab.icon as JSX.Element, {
                 className: `w-5 h-5 ${
                   activeTab === tab.id
                     ? "text-indigo-500"
-                    : "text-gray-400 group-hover:text-gray-500"
+                    : "text-gray-400 group-hover:text-gray-500  "
                 }`,
               })}
               <span>{tab.label}</span>
@@ -357,7 +356,6 @@ const DashboardContent = (): JSX.Element => {
           </p>
         </div>
       ) : (
-        // onClick={() => router.push('/upload')}
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFiles.map(file => (
@@ -412,7 +410,7 @@ const DashboardContent = (): JSX.Element => {
                         {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
                       </p>
                       {file.convertedFormat && (
-                        <p className="mt-1 text-xs text-blue-600">
+                        <p className="mt-1 text-xs text-indigo-600">
                           Converted to: {file.convertedFormat.toUpperCase()}
                         </p>
                       )}
@@ -437,14 +435,14 @@ const DashboardContent = (): JSX.Element => {
                   <div className="mt-4 pt-3 border-t border-border/50 flex gap-2 justify-end">
                     <button
                       onClick={() => handleDownload(file)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm font-semibold transition-colors duration-200 hover:bg-indigo-700"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-400 text-white text-sm font-semibold transition-colors duration-200 hover:bg-indigo-900"
                     >
                       <ArrowDownTrayIcon className="w-4 h-4" />
                       Download
                     </button>
                     <button
                       onClick={() => handleDelete(file.id)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-50 text-red-600 border border-red-200 text-sm font-semibold transition-colors duration-200 hover:bg-red-100 dark:hover:bg-slate-800 dark:bg-slate-700 dark:text-red-400 dark:border-red-600"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-50 text-red-600 border border-red-200 text-sm font-semibold transition-colors duration-200 hover:bg-red-100 dark:hover:bg-slate-800  dark:text-red-400 dark:border-red-600"
                     >
                       <TrashIcon className="w-4 h-4" />
                       Delete

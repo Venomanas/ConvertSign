@@ -115,6 +115,7 @@ const DashboardContent = (): JSX.Element => {
   const [sortBy, setSortBy] = useState<SortBy>("dateAdded");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
+  const router = useRouter();
 
   const handleDownload = (file: FileObject): void => {
     try {
@@ -122,8 +123,16 @@ const DashboardContent = (): JSX.Element => {
       const fileName = file.name;
       const fileType = file.type;
 
+      // Use base64 if available, otherwise use URL
+      const fileData = file.base64 || file.url;
+
+      if (!fileData) {
+        alert("File data not available for download.");
+        return;
+      }
+
       // Use the downloadFile utility from fileUtils
-      downloadFile(file.base64, fileName, fileType);
+      downloadFile(fileData, fileName, fileType);
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Failed to download file. Please try again.");
@@ -149,9 +158,11 @@ const DashboardContent = (): JSX.Element => {
           file.type.startsWith("application/") || file.type.startsWith("text/")
       );
     } else if (activeTab === "signatures") {
-      filtered = filtered.filter((file: FileObject) => file.isSignature);
+      filtered = filtered.filter(
+        (file: FileObject) => file.isSignature === true
+      );
     } else if (activeTab === "processed") {
-      filtered = filtered.filter((file: FileObject) => file.processed);
+      filtered = filtered.filter((file: FileObject) => file.processed === true);
     }
 
     if (searchQuery.trim()) {
@@ -215,8 +226,6 @@ const DashboardContent = (): JSX.Element => {
       icon: <ArrowPathIcon className="w-5 h-5" />,
     },
   ];
-
-  const router = useRouter();
 
   const filteredFiles = getFilteredFiles();
 
@@ -365,7 +374,7 @@ const DashboardContent = (): JSX.Element => {
               >
                 {/* File Preview */}
                 <div className="h-44 bg-muted/40 flex items-center justify-center relative p-4">
-                  {file.type.startsWith("image/") ? (
+                  {file.type.startsWith("image/") && file.base64 ? (
                     <Base64Image
                       src={file.base64}
                       alt={file.name}

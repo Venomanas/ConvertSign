@@ -1,38 +1,38 @@
-import {FormatOption} from '@/app/(main)/convert/page'
-export interface User{
-  name?:string;
-  uid:string;
-  email:string;
+
+export interface User {
+  name?: string;
+  uid: string;
+  email: string;
 }
-export interface UserFull extends User{
-  password:string;
+export interface UserFull extends User {
+  password: string;
   createdAt: string;
 }
-export interface UserProfile{
+export interface UserProfile {
   uid: string;
   displayName: string;
   email: string;
   createdAt: string;
   filesUploaded: number;
 }
-export interface UserActivity{
+export interface UserActivity {
   type: string;
   details: Record<string, unknown>;
   timestamp?: string;
 }
+// authUtils.ts or types.ts
 export interface FileObject {
   id: string;
   name: string;
   type: string;
   size: number;
-  base64: string;
+  url: string;
+  base64?: string;
   dateAdded: string;
-  processed?: boolean;
+  processed: boolean;
   isSignature?: boolean;
-  convertedFormat?: FormatOption | "";
+  convertedFormat?: string;
   dateProccessed?: string;
-  path?:string;
-  lastModified?:string;
 }
 
 /* note !!!
@@ -41,22 +41,25 @@ export interface FileObject {
 
 // User authentication utilities
 
-/** 
+/**
  * create a new user account
  * @param email - user email
  * @param password - user password
  * @param displayName- optional display name
-*/
-export const createUser = async (email:string, password:string, displayName?: string):Promise<User> => {
+ */
+export const createUser = async (
+  email: string,
+  password: string,
+  displayName?: string
+): Promise<User> => {
   return new Promise((resolve, reject) => {
-
     try {
       // Check if email is already in use
-      if(typeof window === 'undefined'){
-        throw new Error('This Function must be called in abrowser environment')
+      if (typeof window === "undefined") {
+        throw new Error("This Function must be called in abrowser environment");
       }
 
-      const existingUsers:UserFull[] = JSON.parse(
+      const existingUsers: UserFull[] = JSON.parse(
         localStorage.getItem("convertSignUsers") || "[]"
       );
       const emailExists = existingUsers.some(user => user.email === email);
@@ -71,7 +74,7 @@ export const createUser = async (email:string, password:string, displayName?: st
         .substring(2, 9)}`;
 
       // Create new user
-      const newUser:UserFull = {
+      const newUser: UserFull = {
         uid,
         password, // Note: In a real app, never store passwords in plain text
         email,
@@ -83,7 +86,7 @@ export const createUser = async (email:string, password:string, displayName?: st
       localStorage.setItem("convertSignUsers", JSON.stringify(existingUsers));
 
       // Create user profile
-      const profile:UserProfile = {
+      const profile: UserProfile = {
         uid,
         displayName: displayName || email.split("@")[0],
         email,
@@ -92,7 +95,7 @@ export const createUser = async (email:string, password:string, displayName?: st
       };
 
       // Store profiles
-      const profiles:UserProfile[] = JSON.parse(
+      const profiles: UserProfile[] = JSON.parse(
         localStorage.getItem("convertSignProfiles") || "[]"
       );
       profiles.push(profile);
@@ -107,8 +110,7 @@ export const createUser = async (email:string, password:string, displayName?: st
 
       // Simulate network delay
       setTimeout(() => resolve(sessionUser), 500);
-    } 
-    catch (error) {
+    } catch (error) {
       reject(error);
     }
   });
@@ -117,14 +119,17 @@ export const createUser = async (email:string, password:string, displayName?: st
 /**
  * Sign in existing User
  * @param email-user email
- * @param password- user password 
+ * @param password- user password
  * @returns User Object
  */
-export const signInUser = async (email:string, password:string): Promise<User> => {
+export const signInUser = async (
+  email: string,
+  password: string
+): Promise<User> => {
   return new Promise((resolve, reject) => {
     try {
-      if(typeof window === 'undefined'){
-        throw new Error('This function must be called in a browser')
+      if (typeof window === "undefined") {
+        throw new Error("This function must be called in a browser");
       }
       const users: UserFull[] = JSON.parse(
         localStorage.getItem("convertSignUsers") || "[]"
@@ -138,7 +143,7 @@ export const signInUser = async (email:string, password:string): Promise<User> =
       }
 
       // Set current user in session
-      const sessionUser:User = { uid: user.uid, email: user.email };
+      const sessionUser: User = { uid: user.uid, email: user.email };
       localStorage.setItem(
         "convertSignCurrentUser",
         JSON.stringify(sessionUser)
@@ -152,8 +157,8 @@ export const signInUser = async (email:string, password:string): Promise<User> =
   });
 };
 /*
-* Sign out the current user
-*/
+ * Sign out the current user
+ */
 export const signOutUser = async (): Promise<void> => {
   return new Promise(resolve => {
     // Remove current user from session
@@ -163,15 +168,14 @@ export const signOutUser = async (): Promise<void> => {
     setTimeout(() => resolve(), 500);
   });
 };
-/** 
-* get the current logged in user
-* @returns user object or null 
-*/
-export const getCurrentUser = ():User | null => {
+/**
+ * get the current logged in user
+ * @returns user object or null
+ */
+export const getCurrentUser = (): User | null => {
   try {
-    if(typeof window === 'undefined')
-      return null;
-    
+    if (typeof window === "undefined") return null;
+
     const userString = localStorage.getItem("convertSignCurrentUser");
     return userString ? JSON.parse(userString) : null;
   } catch {
@@ -181,15 +185,14 @@ export const getCurrentUser = ():User | null => {
 
 // User profile utilities
 /**
- * 
- * @param uid 
- * @returns 
+ *
+ * @param uid
+ * @returns
  */
-export const getUserProfile = (uid: string): UserProfile | null=> {
-
+export const getUserProfile = (uid: string): UserProfile | null => {
   try {
-    if(typeof window === 'undefined') return null;
-    const profiles : UserProfile[] = JSON.parse(
+    if (typeof window === "undefined") return null;
+    const profiles: UserProfile[] = JSON.parse(
       localStorage.getItem("convertSignProfiles") || "[]"
     );
     return profiles.find(profile => profile.uid === uid) || null;
@@ -198,15 +201,18 @@ export const getUserProfile = (uid: string): UserProfile | null=> {
   }
 };
 /**
- * 
- * @param uid 
- * @param updates 
- * @returns 
+ *
+ * @param uid
+ * @param updates
+ * @returns
  */
-export const updateUserProfile =(uid:string, updates: Partial<UserProfile>): UserProfile | null=> {
+export const updateUserProfile = (
+  uid: string,
+  updates: Partial<UserProfile>
+): UserProfile | null => {
   try {
-    if(typeof window === 'undefined')return null;
-    const profiles:UserProfile[] = JSON.parse(
+    if (typeof window === "undefined") return null;
+    const profiles: UserProfile[] = JSON.parse(
       localStorage.getItem("convertSignProfiles") || "[]"
     );
     const updatedProfiles = profiles.map(profile =>
@@ -225,13 +231,13 @@ export const updateUserProfile =(uid:string, updates: Partial<UserProfile>): Use
 
 // File storage utilities per user
 /**
- * 
- * @param uid 
- * @returns 
+ *
+ * @param uid
+ * @returns
  */
-export const getUserFiles = (uid:string): FileObject[] => {
+export const getUserFiles = (uid: string): FileObject[] => {
   try {
-    if(typeof window === 'undefined') return [];
+    if (typeof window === "undefined") return [];
     const userFilesKey = `convertSignFiles_${uid}`;
     return JSON.parse(localStorage.getItem(userFilesKey) || "[]");
   } catch {
@@ -239,11 +245,11 @@ export const getUserFiles = (uid:string): FileObject[] => {
   }
 };
 /**
- * 
- * @param uid 
- * @param files 
+ *
+ * @param uid
+ * @param files
  */
-export const updateUserFiles = (uid:string, files: FileObject[]):void => {
+export const updateUserFiles = (uid: string, files: FileObject[]): void => {
   try {
     const userFilesKey = `convertSignFiles_${uid}`;
     localStorage.setItem(userFilesKey, JSON.stringify(files));
@@ -252,7 +258,7 @@ export const updateUserFiles = (uid:string, files: FileObject[]):void => {
     const profiles = JSON.parse(
       localStorage.getItem("convertSignProfiles") || "[]"
     );
-    const updatedProfiles = profiles.map((profile: { uid: string; }) => {
+    const updatedProfiles = profiles.map((profile: { uid: string }) => {
       if (profile.uid === uid) {
         return { ...profile, filesUploaded: files.length };
       }
@@ -269,14 +275,17 @@ export const updateUserFiles = (uid:string, files: FileObject[]):void => {
 
 // Track file conversions and activities
 /**
- * 
- * @param uid 
- * @param activity 
- * @returns 
+ *
+ * @param uid
+ * @param activity
+ * @returns
  */
-export const recordUserActivity = (uid:string, activity: UserActivity):void => {
+export const recordUserActivity = (
+  uid: string,
+  activity: UserActivity
+): void => {
   try {
-    if(typeof window === 'undefined')return ;
+    if (typeof window === "undefined") return;
     const activities = JSON.parse(
       localStorage.getItem(`convertSignActivities_${uid}`) || "[]"
     );
@@ -294,13 +303,13 @@ export const recordUserActivity = (uid:string, activity: UserActivity):void => {
 };
 
 /**
- * 
- * @param uid 
- * @returns 
+ *
+ * @param uid
+ * @returns
  */
-export const getUserActivities = (uid:string): UserActivity[]=> {
+export const getUserActivities = (uid: string): UserActivity[] => {
   try {
-    if(typeof window === 'undefined') return [];
+    if (typeof window === "undefined") return [];
     return JSON.parse(
       localStorage.getItem(`convertSignActivities_${uid}`) || "[]"
     );

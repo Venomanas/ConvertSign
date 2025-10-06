@@ -1,134 +1,66 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  Fragment,
-} from "react";
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Transition,
-  TransitionChild,
-} from "@headlessui/react";
-import {
-  CheckCircleIcon,
-  XMarkIcon,
-  AdjustmentsHorizontalIcon,
-  LockClosedIcon,
-  LockOpenIcon,
-  ArrowPathIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/react/24/outline";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useFileContext } from "@/context/FileContext";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-// import Image from "next/image";
+import { FileObject } from "@/utils/authUtils";
 
-// Define the file object interface
-export interface FileObject {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  base64: string;
-  width?: number;
-  height?: number;
-}
-
-export interface ImageResizerProps {
-  file: FileObject;
-  onSave: (resizedFile: FileObject) => void;
-  onCancel: () => void;
-}
-
-// Helper function to convert a file to a base64 string
-const fileToBase64 = (file: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-    reader.readAsDataURL(file);
-  });
-};
-
-// Fix malformed base64 strings
-const fixBase64String = (base64: string): string => {
-  // Ensure proper base64 format with comma after "base64"
-  if (base64.includes("base64") && !base64.includes("base64,")) {
-    return base64.replace("base64", "base64,");
-  }
-  return base64;
-};
-
-const ImageResizer: React.FC<ImageResizerProps> = ({
-  file,
-  onSave,
-  onCancel,
-}) => {
+const ResizePage: React.FC = () => {
+  const router = useRouter();
+  const { files, addFile } = useFileContext();
+  const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
   const [width, setWidth] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
   const [originalWidth, setOriginalWidth] = useState<number>(0);
   const [originalHeight, setOriginalHeight] = useState<number>(0);
   const [maintainAspectRatio, setMaintainAspectRatio] = useState<boolean>(true);
   const [aspectRatio, setAspectRatio] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
-
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  // Use a minimal approach to detect image type from base64 data
-  const detectImageType = useCallback((base64: string): string => {
-    if (base64.startsWith("data:image/jpeg")) return "image/jpeg";
-    if (base64.startsWith("data:image/png")) return "image/png";
-    if (base64.startsWith("data:image/gif")) return "image/gif";
-    if (base64.startsWith("data:image/webp")) return "image/webp";
-    return "image/png";
-  }, []);
+  // Get image files only
+  const imageFiles = files.filter(f => f.type.startsWith("image/"));
 
-  // Load the image and set initial dimensions
+  // Load selected file
   useEffect(() => {
-    if (!file || !file.base64) {
-      setError("No valid image file provided.");
-      setIsLoading(false);
-      return;
-    }
+    if (!selectedFile) return;
 
     setError("");
     setIsLoading(true);
 
     const image = new window.Image();
     image.onload = () => {
-      try {
-        setOriginalWidth(image.width);
-        setOriginalHeight(image.height);
-        setWidth(image.width);
-        setHeight(image.height);
-        setAspectRatio(image.width / image.height);
-        imageRef.current = image;
-        setPreview(image.src);
-        setIsLoading(false);
-      } catch {
-        setError("Failed to process image.");
-        setIsLoading(false);
-      }
-    };
-    image.onerror = () => {
-      setError("Failed to load image. The image data may be corrupted.");
+      setOriginalWidth(image.width);
+      setOriginalHeight(image.height);
+      setWidth(image.width);
+      setHeight(image.height);
+      setAspectRatio(image.width / image.height);
+      imageRef.current = image;
+      setPreview(image.src);
       setIsLoading(false);
     };
 
-    // Fix the base64 string before setting as src
-    const fixedBase64 = fixBase64String(file.base64);
-    image.crossOrigin = "anonymous";
-    image.src = fixedBase64;
-  }, [file]);
+    image.onerror = () => {
+      setError("Failed to load image");
+      setIsLoading(false);
+    };
 
-  // Update the canvas preview when dimensions change
+    image.crossOrigin = "anonymous";
+
+    // Use base64 if available, otherwise use URL
+    if (selectedFile.base64) {
+      image.src = selectedFile.base64;
+    } else {
+      image.src = selectedFile.url;
+    }
+  }, [selectedFile]);
+
+  // Update preview when dimensions change
   const updatePreview = useCallback(() => {
     if (
       isLoading ||
@@ -143,416 +75,264 @@ const ImageResizer: React.FC<ImageResizerProps> = ({
     try {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-      if (!ctx) {
-        setError("Canvas context not available");
-        return;
-      }
-
-      // Set canvas dimensions
       canvas.width = width;
       canvas.height = height;
 
-      // Clear canvas with white background
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Enable image smoothing for better quality
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-
-      // Draw resized image
       ctx.drawImage(imageRef.current, 0, 0, width, height);
 
-      // Generate preview with detected image type
-      const detectedType = detectImageType(file.base64);
-      setPreview(canvas.toDataURL(detectedType, 0.95));
-    } catch {
-      setError("Failed to generate preview.");
+      setPreview(canvas.toDataURL("image/png", 0.95));
+    } catch (err) {
+      console.error("Preview error:", err);
     }
-  }, [width, height, isLoading, file.base64, detectImageType]);
+  }, [width, height, isLoading]);
 
   useEffect(() => {
-    updatePreview();
+    const debounce = setTimeout(() => {
+      updatePreview();
+    }, 300);
+
+    return () => clearTimeout(debounce);
   }, [updatePreview]);
 
-  // Handle width change, maintaining aspect ratio if needed
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newWidth = Math.max(1, parseInt(e.target.value, 10) || 1);
+    const newWidth = Math.max(1, parseInt(e.target.value) || 1);
     setWidth(newWidth);
-
     if (maintainAspectRatio && aspectRatio > 0) {
-      setHeight(Math.max(1, Math.round(newWidth / aspectRatio)));
+      setHeight(Math.round(newWidth / aspectRatio));
     }
   };
 
-  // Handle height change, maintaining aspect ratio if needed
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newHeight = Math.max(1, parseInt(e.target.value, 10) || 1);
+    const newHeight = Math.max(1, parseInt(e.target.value) || 1);
     setHeight(newHeight);
-
     if (maintainAspectRatio && aspectRatio > 0) {
-      setWidth(Math.max(1, Math.round(newHeight * aspectRatio)));
+      setWidth(Math.round(newHeight * aspectRatio));
     }
   };
 
-  // Toggle aspect ratio lock
-  const toggleAspectRatio = () => {
-    setMaintainAspectRatio(prev => !prev);
-  };
-
-  // Reset to original dimensions
   const handleReset = () => {
     setWidth(originalWidth);
     setHeight(originalHeight);
   };
 
-  // Save the resized image
-  const handleSave = () => {
-    if (!canvasRef.current) {
-      setError("Canvas not available for save");
-      return;
-    }
+  const handleSave = async () => {
+    if (!canvasRef.current || !selectedFile) return;
+
+    setIsProcessing(true);
+    setError("");
 
     try {
-      const detectedType = detectImageType(file.base64);
-      const resizedBase64 = canvasRef.current.toDataURL(detectedType, 0.95);
+      const resizedBase64 = canvasRef.current.toDataURL("image/png", 0.95);
 
-      if (!resizedBase64 || resizedBase64 === "data:,") {
-        setError("Failed to generate valid base64 data.");
-        return;
-      }
-
-      // Create a new file object with resized dimensions and correct type
+      // Create proper FileObject with all required properties
       const resizedFile: FileObject = {
-        ...file,
-        base64: resizedBase64,
-        type: detectedType,
-        width,
-        height,
+        id: `resized_${Date.now()}`,
+        name: `resized_${selectedFile.name}`,
+        type: "image/png",
         size: Math.round((resizedBase64.length * 3) / 4),
+        url: resizedBase64, // Use base64 as URL for preview
+        base64: resizedBase64,
+        dateAdded: new Date().toISOString(),
+        processed: true,
       };
 
-      onSave(resizedFile);
-    } catch {
-      setError("Failed to save resized image.");
+      addFile(resizedFile);
+      setSelectedFile(null);
+      alert("Image resized and saved to dashboard!");
+    } catch (err) {
+      setError("Failed to save resized image");
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-6 rounded-xl bg-slate-50 border border-slate-200 shadow-md">
-      {/* Resizer Controls */}
-      <div className="flex-1 md:order-2">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">Resize Image</h3>
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center dark:text-slate-400">
+        Image Resizer
+      </h1>
+
+      {imageFiles.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-600 mb-4">No images available to resize.</p>
           <button
-            onClick={onCancel}
-            className="p-1 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+            onClick={() => router.push("/upload")}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
-            <XMarkIcon className="w-6 h-6" />
+            Upload Images
           </button>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center h-48">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-500 mb-4"></div>
-              <p className="text-gray-600 font-medium">Loading image...</p>
-            </div>
-          </div>
-        ) : error ? (
-          <div className="text-center p-8 bg-red-100 border border-red-300 rounded-lg">
-            <p className="text-red-700 font-medium">{error}</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-4 mb-6">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Width (px)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10000"
-                  value={width}
-                  onChange={handleWidthChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-black"
-                />
-              </div>
-
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Height (px)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10000"
-                  value={height}
-                  onChange={handleHeightChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-black"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-700 mr-2">
-                    Maintain Aspect Ratio
-                  </span>
-                  <button
-                    onClick={toggleAspectRatio}
-                    className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition-colors"
-                  >
-                    {maintainAspectRatio ? (
-                      <LockClosedIcon className="w-5 h-5" />
-                    ) : (
-                      <LockOpenIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                <button
-                  onClick={handleReset}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+      ) : (
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* File Selection */}
+          <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Select Image
+            </h3>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {imageFiles.map(file => (
+                <div
+                  key={file.id}
+                  onClick={() => setSelectedFile(file)}
+                  className={`p-3 rounded-md cursor-pointer transition-colors ${
+                    selectedFile?.id === file.id
+                      ? "bg-indigo-50 border-2 border-indigo-300"
+                      : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
+                  }`}
                 >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  Reset
-                </button>
-              </div>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+              ))}
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={onCancel}
-                className="flex-1 py-3 px-6 rounded-xl border border-gray-300 text-gray-800 font-semibold shadow-sm hover:bg-indigo-100 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={width <= 0 || height <= 0}
-                className="flex-1 py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold shadow-md  disabled:bg-blue-300 disabled:cursor-not-allowed transition-all"
-              >
-                Apply Resize
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Preview Section */}
-      <div className="flex-1 md:order-1">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-inner">
-          <div className="flex items-center gap-2 mb-2">
-            <AdjustmentsHorizontalIcon className="w-5 h-5 text-gray-500" />
-            <span className="text-sm text-gray-600 font-medium">
-              Original: {originalWidth}x{originalHeight}px
-            </span>
-            <span className="text-sm text-gray-600 font-medium">|</span>
-            <span className="text-sm text-gray-600 font-medium">
-              New: {width}x{height}px
-            </span>
           </div>
-          <div className="relative w-full h-auto max-h-[400px] overflow-hidden rounded-lg">
-            {preview ? (
-              // Use regular img tag for base64 images instead of Next.js Image
-              <img
-                src={preview}
-                alt="Resized preview"
-                className="w-full h-auto object-contain"
-                style={{ maxHeight: "380px" }}
-              />
+
+          {/* Resize Controls & Preview */}
+          <div className="lg:col-span-2 space-y-6">
+            {selectedFile ? (
+              <>
+                {/* Preview */}
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                    Preview
+                  </h3>
+                  <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center min-h-[300px]">
+                    {isLoading ? (
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Loading image...</p>
+                      </div>
+                    ) : preview ? (
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="max-w-full max-h-[400px] object-contain"
+                      />
+                    ) : (
+                      <p className="text-gray-400">No preview available</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                    Resize Settings
+                  </h3>
+
+                  {error && (
+                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Width (px)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10000"
+                        value={width}
+                        onChange={handleWidthChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Height (px)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10000"
+                        value={height}
+                        onChange={handleHeightChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-6">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={maintainAspectRatio}
+                        onChange={e => setMaintainAspectRatio(e.target.checked)}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Maintain aspect ratio
+                      </span>
+                    </label>
+                    <button
+                      onClick={handleReset}
+                      className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    >
+                      Reset to original
+                    </button>
+                  </div>
+
+                  <div className="text-sm text-gray-600 mb-6 p-3 bg-gray-50 rounded-md">
+                    <p>
+                      Original: {originalWidth} × {originalHeight} px
+                    </p>
+                    <p>
+                      New: {width} × {height} px
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setSelectedFile(null)}
+                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={isProcessing || width <= 0 || height <= 0}
+                      className="flex-1 py-3 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                    >
+                      {isProcessing ? "Saving..." : "Save Resized Image"}
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="flex justify-center items-center h-full min-h-[200px] bg-gray-100 text-gray-400 text-center p-8">
-                Preview not available
+              <div className="bg-white p-12 rounded-lg shadow-md text-center">
+                <Image
+                  src="choose2.svg"
+                  alt="Select image"
+                  width={120}
+                  height={120}
+                  className="mx-auto mb-4 opacity-50"
+                />
+                <p className="text-gray-600">
+                  Select an image from the list to start resizing
+                </p>
               </div>
             )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Hidden canvas for image processing */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };
 
-// Main App Component to demonstrate the ImageResizer
-export default function App() {
-  const [file, setFile] = useState<FileObject | null>(null);
-  const [resizedFile, setResizedFile] = useState<FileObject | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      try {
-        const base64 = await fileToBase64(selectedFile);
-        const fixedBase64 = fixBase64String(base64);
-        const newFileObject: FileObject = {
-          id: crypto.randomUUID(),
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size,
-          base64: fixedBase64,
-        };
-        setFile(newFileObject);
-        setResizedFile(null); // Clear previous resized file
-      } catch (err) {
-        console.error("Error converting file to base64:", err);
-      }
-    }
-  };
-
-  const handleSave = (newFile: FileObject) => {
-    setResizedFile(newFile);
-    setFile(null); // Hide the resizer component
-    setIsModalOpen(true);
-  };
-
-  const handleCancel = () => {
-    setFile(null);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  // Function to handle the download of the resized image
-  const handleDownload = () => {
-    if (resizedFile) {
-      const link = document.createElement("a");
-      link.href = resizedFile.base64;
-      link.download = `resized-${resizedFile.name}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center justify-center p-8 min-h-screen dark:bg-slate-50 font-sans">
-       <Image
-       src={"resize.svg"}
-       alt="Upload Files"
-       width={250}
-       height={250}
-       className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
-       />
-       
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Image Resizer</h1>
-
-      {!file && (
-        <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-md border border-gray-200 text-center">
-          <label htmlFor="file-upload" className="block w-full cursor-pointer">
-            <div className="bg-indigo-600 dark:bg-slate-500 dark:hover:bg-slate-700 text-white rounded-lg px-6 py-3 font-semibold hover:bg-indigo-700 transition-colors">
-              Select an Image to Resize
-            </div>
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </div>
-      )}
-
-      {file && (
-        <div className="w-full max-w-4xl">
-          <ImageResizer
-            file={file}
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-        </div>
-      )}
-
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/30" />
-        </TransitionChild>
-
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <TransitionChild
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <DialogTitle
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 flex items-center gap-2"
-                  >
-                    <CheckCircleIcon className="w-6 h-6 text-green-500" />
-                    Image Resized!
-                  </DialogTitle>
-                  <div className="mt-2">
-                    {resizedFile && (
-                      <div className="text-sm text-gray-500">
-                        <p>Your image was successfully resized to:</p>
-                        <p className="font-semibold text-gray-700">
-                          {resizedFile.name}
-                        </p>
-                        {/* Use regular img tag for base64 images */}
-                        <img
-                          src={resizedFile.base64}
-                          alt="Resized Image"
-                          className="mt-4 max-w-full h-auto rounded-lg shadow-sm"
-                          style={{ maxHeight: "380px" }}
-                        />
-                        <div className="mt-4 text-xs text-gray-500">
-                          <p>
-                            New Size: {(resizedFile.size / 1024).toFixed(2)} KB
-                          </p>
-                          <p>
-                            New Dimensions: {resizedFile.width}x
-                            {resizedFile.height}px
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex flex-col sm:flex-row justify-end gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={handleDownload}
-                    >
-                      <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                      Download Image
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
-                    >
-                      Got it!
-                    </button>
-                  </div>
-                </DialogPanel>
-              </TransitionChild>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
-      
-    </div>
-  );
-}
+export default ResizePage;

@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   useContext,
   useEffect,
@@ -16,22 +17,17 @@ interface FileContextType {
   removeFile: (fileId: string) => void;
   getFile: (fileId: string) => FileObject | undefined;
   clearFiles: () => void;
-  //method to handle resized images
   updateResizedImage: (fileId: string, resizedBase64: string) => void;
   selectedFile: FileObject | null;
   setSelectedFile: (file: FileObject | null) => void;
 }
 
-//create context
 const FileContext = createContext<FileContextType | undefined>(undefined);
-
 
 interface FileProviderProps {
   children: ReactNode;
 }
 
-
-//custom hooks using file context
 export const useFileContext = (): FileContextType => {
   const context = useContext(FileContext);
   if (!context) {
@@ -40,67 +36,92 @@ export const useFileContext = (): FileContextType => {
   return context;
 };
 
-// Provider component
 export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
   const { currentUser } = useAuth();
   const [files, setFiles] = useState<FileObject[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
 
-  //load user-depecific files when user change
-
+  // Load user-specific files when user changes
   useEffect(() => {
     if (currentUser) {
-      //files for authenticated user
       const userFiles = getUserFiles(currentUser.uid);
       setFiles(userFiles);
     } else {
-      //reset files when logged out
       setFiles([]);
+      setSelectedFile(null);
     }
   }, [currentUser]);
-  //update storage whenever files chamgees
+
+  // Update storage whenever files change
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && files.length >= 0) {
       updateUserFiles(currentUser.uid, files);
     }
   }, [files, currentUser]);
 
-  //operation function for files
-
-  //add a new files
+  // Add a new file
   const addFile = (file: FileObject): void => {
-    setFiles(prevFiles => [...prevFiles, file]);
+    setFiles(prevFiles => {
+      // Check for duplicates
+      const exists = prevFiles.some(f => f.id === file.id);
+      if (exists) {
+        console.warn("File already exists:", file.id);
+        return prevFiles;
+      }
+      return [...prevFiles, file];
+    });
   };
-  //update files
-  const updateFile = (fileId: string, update: Partial<FileObject>): void => {
+
+  // Update an existing file
+  const updateFile = (fileId: string, updates: Partial<FileObject>): void => {
     setFiles(prevFiles =>
       prevFiles.map(file =>
-        file.id === fileId ? { ...file, ...update } : file
+        file.id === fileId ? { ...file, ...updates } : file
       )
     );
   };
-  //remove files
+
+  // Remove a file
   const removeFile = (fileId: string): void => {
     setFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
-  };
-  //clear Files
-  const clearFiles = (): void => {
-    if (window.confirm("Are you sure you want to clear all files")) {
-      setFiles([]);
+
+    // Clear selected file if it was deleted
+    if (selectedFile?.id === fileId) {
+      setSelectedFile(null);
     }
   };
-  //get single File by Id
+
+  // Clear all files
+  const clearFiles = (): void => {
+    if (window.confirm("Are you sure you want to clear all files?")) {
+      setFiles([]);
+      setSelectedFile(null);
+    }
+  };
+
+  // Get a single file by ID
   const getFile = (fileId: string): FileObject | undefined => {
     return files.find(file => file.id === fileId);
   };
-  //update resized image
-  const updateResizedImage =(fileId: string, resizedBase64: string): void =>{
-    setFiles(prevFiles=>
-      prevFiles.map(file=>
-        file.id === fileId ? {...file, base64: resizedBase64}:file
-      )
-    );
+
+  // Update resized image - creates new file instead of updating
+  const updateResizedImage = (fileId: string, resizedBase64: string): void => {
+    const originalFile = files.find(f => f.id === fileId);
+    if (!originalFile) return;
+
+    const resizedFile: FileObject = {
+      ...originalFile,
+      id: `resized_${Date.now()}`,
+      name: `resized_${originalFile.name}`,
+      base64: resizedBase64,
+      size: Math.round((resizedBase64.length * 3) / 4),
+      processed: true,
+      dateProccessed: new Date().toISOString(),
+    };
+
+    addFile(resizedFile);
   };
+
   const contextValue: FileContextType = {
     files,
     addFile,

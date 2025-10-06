@@ -4,7 +4,7 @@ import { useFileContext } from "@/context/FileContext";
 import React, { useState } from "react";
 import { FileObject } from "@/utils/authUtils";
 import Image from "next/image";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 //define type for target formats
 export type FormatOption =
@@ -17,15 +17,15 @@ export type FormatOption =
   | "docx"
   | "txt"
   | "csv";
-  
-  const FileConverter: React.FC = () => {
+
+const FileConverter: React.FC = () => {
   const router = useRouter();
-  const { files, updateFile } = useFileContext();
+  const { files, addFile } = useFileContext();
   const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
   const [targetFormat, setTargetFormat] = useState<FormatOption | "">("");
   const [isConverting, setIsConverting] = useState(false);
   const [conversionError, setConversionError] = useState("");
-
+  const [convertedFile, setConvertedFile] = useState<FileObject | null>(null);
 
   //list of possible target formats based on file type
   const getTargetFormats = (fileType: string): FormatOption[] => {
@@ -58,6 +58,7 @@ export type FormatOption =
       return [];
     }
   };
+
   // handle file selection
   const handleFileSelect = (fileId: string): void => {
     const file = files.find(f => f.id === fileId);
@@ -65,6 +66,7 @@ export type FormatOption =
       setSelectedFile(file);
       setTargetFormat("");
       setConversionError("");
+      setConvertedFile(null);
     }
   };
 
@@ -74,10 +76,11 @@ export type FormatOption =
   ): void => {
     setTargetFormat(e.target.value as FormatOption | "");
   };
+
   const getOriginalFormat = (file: FileObject | null): string => {
     if (!file) return "";
 
-  const typeMap: Record<string, string> = {
+    const typeMap: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
       "image/webp": "webp",
@@ -95,44 +98,86 @@ export type FormatOption =
     };
     return typeMap[file.type] || file.type.split("/")[1];
   };
-  // handle Conversion
+
   const handleConvert = async (): Promise<void> => {
     if (!selectedFile || !targetFormat) {
       setConversionError("Please select both a file and a target format");
+      return;
     }
+
     setIsConverting(true);
     setConversionError("");
-    try {
-      //conversion process with delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // In a real application, we would use a conversion API or library here
-      // For now, we'll just simulate a successful conversion by creating a new file entry
-      const originalFormat = getOriginalFormat(selectedFile);
-      const newFileName = selectedFile?.name.replace(
-        new RegExp(`\\.${originalFormat}$`, "i"),
-        `.${targetFormat}`
+    try {
+      const formData = new FormData();
+      const blob = await fetch(selectedFile.url).then(r => r.blob());
+      formData.append(
+        "file",
+        new File([blob], selectedFile.name, { type: selectedFile.type })
       );
-      if (selectedFile?.id) {
-        updateFile(selectedFile.id, {
-          name: newFileName,
-          processed: true,
-          convertedFormat: targetFormat,
-          dateProccessed: new Date().toISOString(),
-        });
+      formData.append("targetFormat", targetFormat);
+
+      const response = await fetch("/api/convert", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Conversion failed");
       }
-      // Reset selection after successful conversion
-      setTargetFormat("");
-      setSelectedFile(null);
-    } catch (error) {
+
+      const { convertedFile: convertedFileBase64, fileName } =
+        await response.json();
+      const byteCharacters = atob(convertedFileBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const newBlob = new Blob([byteArray], {
+        type: `application/${targetFormat}`,
+      });
+
+      // Fix: Add the missing dateAdded property
+      const newFile: FileObject = {
+        id: new Date().toISOString(),
+        name: fileName,
+        url: URL.createObjectURL(newBlob),
+        size: newBlob.size,
+        type: newBlob.type,
+        dateAdded: new Date().toISOString(), // Add this required property
+        processed: true,
+        convertedFormat: targetFormat,
+        dateProccessed: new Date().toISOString(),
+      };
+
+      addFile(newFile);
+      setConvertedFile(newFile);
+    } catch (error: unknown) {
+      // Fix: Replace 'any' with 'unknown'
       console.error("Conversion error:", error);
       setConversionError(
-        "An error ocurred during conversion. Please try again."
+        error instanceof Error
+          ? error.message
+          : "An error occurred during conversion. Please try again."
       );
     } finally {
       setIsConverting(false);
     }
   };
+
+  const handleDownload = (file: FileObject | null) => {
+    if (!file) return;
+    const a = document.createElement("a");
+    a.href = file.url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(file.url);
+  };
+
   return (
     <div className="max-w-4xl mx-auto ">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-400">
@@ -147,7 +192,10 @@ export type FormatOption =
           <button
             onClick={() => router.push("/upload")}
             className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
-          > Click here to Upload </button>
+          >
+            {" "}
+            Click here to Upload{" "}
+          </button>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-8">
@@ -261,16 +309,9 @@ export type FormatOption =
                     onChange={handleFormatChange}
                     className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                   >
-                    <option
-                      value=""
-                    >
-                      Select target format
-                    </option>
+                    <option value="">Select target format</option>
                     {getTargetFormats(selectedFile.type).map(format => (
-                      <option
-                        key={format}
-                        value={format}         
-                      >
+                      <option key={format} value={format}>
                         {format.toUpperCase()}
                       </option>
                     ))}
@@ -280,6 +321,17 @@ export type FormatOption =
                 {conversionError && (
                   <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded-md">
                     {conversionError}
+                  </div>
+                )}
+                {convertedFile && (
+                  <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded-md">
+                    <p>Conversion successful!</p>
+                    <button
+                      onClick={() => handleDownload(convertedFile)}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      Download Converted File
+                    </button>
                   </div>
                 )}
 
@@ -310,13 +362,14 @@ export type FormatOption =
         <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-slate-400">
           About File Conversion
         </h3>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm"><Image
-                  src={"convert1.svg"}
-                  alt="Upload Files"
-                  width={150}
-                  height={150}
-                  className="mx-auto mb-3  transition-transform duration-300 group-hover:scale-110 "
-                  />
+        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
+          <Image
+            src={"convert1.svg"}
+            alt="Upload Files"
+            width={150}
+            height={150}
+            className="mx-auto mb-3  transition-transform duration-300 group-hover:scale-110 "
+          />
           <p className="mb-2">convert files between various formats:</p>
           <ul className="list-disc pl-5 mb-2 space-y-1">
             <li>Convert JPG, PNG, WebP, and more</li>

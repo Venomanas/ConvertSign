@@ -3,24 +3,19 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { useFileContext } from "@/context/FileContext";
 import { fileToBase64 } from "@/utils/fileUtils";
-import { ArrowUpTrayIcon } from "@heroicons/react/16/solid";
+import { ArrowUpTrayIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
-import { UploadActionModal } from "@/components/providers/UploadActionModal";
 import { useRouter } from "next/navigation";
 
 const FileUploader: React.FC = () => {
   const router = useRouter();
   const { addFile } = useFileContext();
   const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress] = useState(0);
-  const [isUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [uploadError, setUploadError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  //to hold sleceted files and show the modal
-  const [filesReadyForAction, setFilesReadyForAction] =
-    useState<FileList | null>(null);
-
-  // Accepted file types
   const acceptedFileTypes = [
     "image/jpeg",
     "image/png",
@@ -32,15 +27,12 @@ const FileUploader: React.FC = () => {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "text/plain",
   ];
 
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
     } else if (e.type === "dragleave") {
@@ -52,124 +44,122 @@ const FileUploader: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
-    if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+    if (e.dataTransfer.files?.length) {
+      await handleFiles(e.dataTransfer.files);
+    }
   };
 
   const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (e.target.files?.length) handleFiles(e.target.files);
-  };
-
-  const handleFiles = async (files: FileList) => {
-    setFilesReadyForAction(files);
-  };
-  // This function runs when a user clicks an action button in the modal
-  const handleAction = async(action: "convert" | "resize" | "dashboard") => {
-    if (!filesReadyForAction) return;
-
-    for (let i=0; i<filesReadyForAction.length; i++)
-    {
-      const file = filesReadyForAction[i];
-      if (!acceptedFileTypes.includes(file.type)) {
-        alert(`File type ${file.type} is not supported!`);
-        continue;
-      }
-      try {
-        const base64 = await fileToBase64(file);
-        addFile({
-          id: `${Date.now()}-${i}`,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          base64: base64,
-          dateAdded: new Date().toISOString(),
-          processed: false,
-          isSignature: false,
-        });
-      } catch (error) {
-        console.error("Error processing file:",error);
-      }
-      }
-
-      //close modal
-      setFilesReadyForAction(null);
-      if(inputRef.current) inputRef.current.value="";
-
-      //navigating to chosen option
-      router.push(`/${action}`)
-    };
-
-  const handleButtonClick = () => {
-    if (inputRef.current) {
-      inputRef.current?.click();
+    if (e.target.files?.length) {
+      await handleFiles(e.target.files);
     }
   };
-  interface Step {
-    title: string;
-    description: string;
+
+const handleFiles = async (fileList: FileList) => {
+  setIsUploading(true);
+  setUploadError("");
+  setUploadedCount(0);
+  let successCount = 0;
+  const errors: string[] = [];
+
+  for (let i = 0; i < fileList.length; i++) {
+    const file = fileList[i];
+
+    if (!acceptedFileTypes.includes(file.type)) {
+      errors.push(`${file.name}: Unsupported file type`);
+      continue;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      errors.push(`${file.name}: File too large (max 10MB)`);
+      continue;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+
+      // Fix: Add missing url property
+      addFile({
+        id: `${Date.now()}-${i}`,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: base64, // Use base64 as temporary URL
+        base64: base64,
+        dateAdded: new Date().toISOString(),
+        processed: false,
+        isSignature: false,
+      });
+
+      successCount++;
+      setUploadedCount(successCount);
+    } catch (error) {
+      console.error("Error processing file:", error);
+      errors.push(`${file.name}: Failed to process`);
+    }
   }
 
-  const steps: Step[] = [
-    {
-      title: "Upload Files",
-      description:
-        "Click the upload button or drag and drop your files onto the page",
-    },
-    {
-      title: "Select Format",
-      description:
-        "Choose your desired output format from the available options",
-    },
-    {
-      title: "Convert Files",
-      description: "Click convert and wait for processing to complete",
-    },
-    {
-      title: "Download Results",
-      description:
-        "Download your converted files individually or as a ZIP archive",
-    },
-  ];
+  setIsUploading(false);
+  if (errors.length > 0) {
+    setUploadError(errors.join("\n"));
+  }
+
+  if (inputRef.current) {
+    inputRef.current.value = "";
+  }
+
+  if (successCount > 0) {
+    setTimeout(() => {
+      setUploadedCount(0);
+    }, 3000);
+  }
+};
+  const handleButtonClick = () => {
+    inputRef.current?.click();
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200 dark:bg-slate-400">
-      <h2 className="text-3xl font-bold tracking-tight text-slate-800 text-center mb-8 ">
+      <h2 className="text-3xl font-bold tracking-tight text-slate-800 text-center mb-8">
         Upload Your Files
       </h2>
 
+      {/* Upload Area */}
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
           dragActive
-            ? "border-slate-500 bg-indigo-50"
+            ? "border-indigo-500 bg-indigo-50"
             : "border-gray-300 bg-gray-50"
-        } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-300 bg-slate-100 `}
+        } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-300 bg-slate-100`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <div className="flex flex-col items-center justify-center text-center  ">
+        <div className="flex flex-col items-center justify-center text-center">
           <ArrowUpTrayIcon
-            className={`w-16 h-16 mb-4 transition-colors duration-200  ${
+            className={`w-16 h-16 mb-4 transition-colors duration-200 ${
               dragActive
                 ? "text-indigo-400"
                 : "text-gray-400 dark:text-slate-900"
             }`}
           />
           <p className="mb-2 text-black text-center">
-            <span className="font-semibold text-indigo-400">drag and drop</span>{" "}
+            <span className="font-semibold text-indigo-600">Drag and drop</span>{" "}
+            your files here
           </p>
-          <p className="text-xs max-w-sm text-black mb-4 text-center p-2 ">
-            PNG, JPG, PDF, DOCX, and more. All files are processed securely.
+          <p className="text-xs max-w-sm text-gray-700 mb-4 text-center p-2">
+            PNG, JPG, PDF, DOCX, and more. Max 10MB per file.
           </p>
         </div>
+
         <button
           onClick={handleButtonClick}
-          className="px-4 py-2 bg-slate-900 text-white rounded-md dark:hover:bg-white hover:text-slate-900 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors "
-          // disabled={isUploading}
+          disabled={isUploading}
+          className="px-6 py-3 bg-slate-900 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
         >
-          Click to upload
+          {isUploading ? "Uploading..." : "Click to upload"}
         </button>
 
         <input
@@ -177,105 +167,122 @@ const FileUploader: React.FC = () => {
           onChange={handleChange}
           type="file"
           multiple
+          accept={acceptedFileTypes.join(",")}
           className="hidden"
+          disabled={isUploading}
         />
       </div>
 
+      {/* Upload Status */}
       {isUploading && (
-        <div className="mt-6">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="indigo-800 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            >
-              {" "}
-              <p className="mt-2 text-sm text-center text-gray-900">
-                Uploading... {uploadProgress}%
-              </p>{" "}
-            </div>
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 mr-3"></div>
+            <p className="text-sm text-gray-700">
+              Uploading files... ({uploadedCount} uploaded)
+            </p>
           </div>
         </div>
       )}
 
+      {/* Success Message */}
+      {uploadedCount > 0 && !isUploading && (
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center">
+            <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+            <p className="text-sm text-green-800">
+              Successfully uploaded {uploadedCount} file
+              {uploadedCount > 1 ? "s" : ""}!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Messages */}
+      {uploadError && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-800 font-semibold mb-2">
+            Upload errors:
+          </p>
+          <pre className="text-xs text-red-700 whitespace-pre-wrap">
+            {uploadError}
+          </pre>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      {uploadedCount > 0 && !isUploading && (
+        <div className="mt-6 flex flex-wrap gap-3 justify-center">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
+          >
+            Go to Dashboard
+          </button>
+          <button
+            onClick={() => router.push("/convert")}
+            className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+          >
+            Convert Files
+          </button>
+          <button
+            onClick={() => router.push("/resize")}
+            className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+          >
+            Resize Images
+          </button>
+        </div>
+      )}
+
+      {/* Supported File Types */}
       <div className="mt-12">
         <h3 className="text-xl font-bold text-gray-800 mb-4">
           Supported File Types
         </h3>
         <Image
-          src={"support.svg"}
-          alt="Upload Files"
+          src="support.svg"
+          alt="Supported files"
           width={150}
           height={150}
-          className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
+          className="mx-auto mb-4"
         />
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm ">
-          <div className="bg-blue-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm">
+          <div className="bg-blue-100 rounded p-3 text-center text-black shadow-sm">
             Images (JPG, PNG, GIF)
           </div>
-          <div className="bg-pink-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-pink-100 rounded p-3 text-center text-black shadow-sm">
             Documents (PDF, DOC)
           </div>
-          <div className="bg-blue-200  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-green-100 rounded p-3 text-center text-black shadow-sm">
             Spreadsheets (XLS, XLSX)
           </div>
-          <div className="bg-purple-100  rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
-            Presentations (PPT, PPTX)
-          </div>
-          <div className="bg-indigo-100 rounded p-2 text-center text-black shadow-black shadow-2xs cursor-default">
+          <div className="bg-purple-100 rounded p-3 text-center text-black shadow-sm">
             Text files (TXT)
           </div>
         </div>
       </div>
 
-      <div className="mt-8">
-        <h3 className="font-bold m-2 p-2 ">
-          <div
-            className={`how-to-use bg-indigo-100 dark:bg-slate-300 rounded-lg p-6 shadow-sm `}
-          >
-            <h2 className="section-title text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
-              Steps to Use
-            </h2>
-
-            <ol className="numbered-steps space-y-6 max-w-2xl mx-auto">
-              {steps.map((step, index) => (
-                <li
-                  key={index}
-                  className="step-item flex items-start gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors duration-200"
-                >
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#1a1b60] text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="step-title text-lg font-semibold text-gray-800 mb-2">
-                      {step.title}
-                    </h3>
-                    <p className="step-description text-gray-400 leading-relaxed">
-                      {step.description}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
-              <p className="text-green-800/80 text-center font-medium">
-                All files are temporarily stored in your dashboard .
-              </p>
-            </div>
-          </div>
-        </h3>
+      {/* How to Use */}
+      <div className="mt-8 bg-indigo-50 rounded-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">How to Use</h3>
+        <ol className="space-y-3">
+          {[
+            "Upload your files using drag & drop or the upload button",
+            "Files are stored securely in your browser",
+            "Use the quick action buttons to convert, resize, or manage files",
+            "Download or delete files anytime from your dashboard",
+          ].map((step, index) => (
+            <li key={index} className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                {index + 1}
+              </div>
+              <p className="text-gray-700 pt-0.5">{step}</p>
+            </li>
+          ))}
+        </ol>
       </div>
-
-      {filesReadyForAction && (
-        <UploadActionModal
-          fileCount={filesReadyForAction.length}
-          onConvert={() => handleAction("convert")}
-          onResize={() => handleAction("resize")}
-          onGoToDashboard={() => handleAction("dashboard")}
-          onCancel={() => setFilesReadyForAction(null)}
-        />
-      )}
     </div>
   );
 };
+
 export default FileUploader;

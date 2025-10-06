@@ -29,18 +29,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning={true}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-          >
-        <AuthProvider>
-           
-          <FileProvider>
-           {children}
-           </FileProvider>
-           
-        </AuthProvider>
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <FileProvider>{children}</FileProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

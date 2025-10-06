@@ -1,14 +1,20 @@
-'use client'
+"use client";
 
-import React, { useContext , useState , useEffect , createContext , ReactNode} from "react";
+import React, {
+  useContext,
+  useState,
+  useEffect,
+  createContext,
+  ReactNode,
+} from "react";
 
 import {
   createUser,
   signInUser,
   signOutUser,
   getCurrentUser,
-  getUserProfile
-} from '@/utils/authUtils';
+  getUserProfile,
+} from "@/utils/authUtils";
 
 //it is tsx so define types for better type safety
 interface User {
@@ -37,60 +43,63 @@ interface AuthContextType {
 }
 
 interface AuthProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
-//authentication context 
+//authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 //Custom hook to use the authentication context
-export const useAuth = (): AuthContextType=> {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if(!context){
-    throw new Error('useAuth must be used within an AuthProvider')
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 };
 
 //Auth provider component
-export const AuthProvider : React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  //Check if user is already authenticated on initial load 
+  //Check if user is already authenticated on initial load
   useEffect(() => {
-    const checkUserAuth = async () =>{
-      
+    const checkUserAuth = async () => {
       //check for the existing user in localstorage
-      
-     try {
-       const user = getCurrentUser();
-       if (user) {
-         setCurrentUser(user);
-         const profile = await getUserProfile(user.uid);
-         setUserProfile(profile);
-       }
-     } catch (err) {
-       console.error("Error checking user auth:", err);
-       setError(
-         err instanceof Error ? err.message : "Authentication check failed"
-       );
-     } finally {
-       setLoading(false);
-     }
+
+      try {
+        const user = getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          const profile = await getUserProfile(user.uid);
+          setUserProfile(profile);
+        }
+      } catch (err) {
+        console.error("Error checking user auth:", err);
+        setError(
+          err instanceof Error ? err.message : "Authentication check failed"
+        );
+      } finally {
+        setLoading(false);
+      }
     };
     checkUserAuth();
-  },[]);
+  }, []);
 
-//sign up function
+  //sign up function
 
-  const signUp = async(email: string, password: string, displayName: string) =>{
+  const signUp = async (
+    email: string,
+    password: string,
+    displayName: string
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
-      const user = await createUser(email , password , displayName);
+      const user = await createUser(email, password, displayName);
       setCurrentUser(user);
 
       //After successful sign up, get and set user profile
@@ -98,19 +107,19 @@ export const AuthProvider : React.FC<AuthProviderProps> = ({ children }) => {
       setUserProfile(profile);
 
       return user;
-    }catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Sign in failed';
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Sign in failed";
       setError(errorMessage);
       throw err;
+    } finally {
+      setLoading(false);
     }
-    finally{
-      setLoading(false)
-    }  
   };
 
-//signIn function 
+  //signIn function
 
-  const signIn = async(email: string ,password: string) =>{
+  const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -129,43 +138,43 @@ export const AuthProvider : React.FC<AuthProviderProps> = ({ children }) => {
       setError(errorMessage);
       throw err;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-//signOut function
-const signOut = async (): Promise<void> => {
-  try {
-    setError(null);
-    setLoading(true);
+  };
+  //signOut function
+  const signOut = async (): Promise<void> => {
+    try {
+      setError(null);
+      setLoading(true);
 
-    await signOutUser();
-    setCurrentUser(null);
-    setUserProfile(null);
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Sign out failed";
-    setError(errorMessage);
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-};
-
-//authentication context value 
-
-  const contextValue = {
-  currentUser,
-  userProfile,
-  loading,
-  error,
-  signUp,
-  signOut,
-  signIn
+      await signOutUser();
+      setCurrentUser(null);
+      setUserProfile(null);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Sign out failed";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
-return (
-  <AuthContext.Provider value={contextValue}>{children}
-  </AuthContext.Provider>
-)
+  //authentication context value
+
+  const contextValue = {
+    currentUser,
+    userProfile,
+    loading,
+    error,
+    signUp,
+    signOut,
+    signIn,
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 };
 
 export default AuthContext;

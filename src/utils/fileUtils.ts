@@ -9,7 +9,7 @@ export const fileToBase64 = (file: File): Promise<string> => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
+    reader.onerror = error => reject(error);
   });
 };
 
@@ -19,7 +19,7 @@ export const fileToBase64 = (file: File): Promise<string> => {
  * @param {number} decimals - Number of decimals to show
  * @returns {string} - Formatted size string
  */
-export const formatBytes = (bytes:number, decimals: number = 2):string => {
+export const formatBytes = (bytes: number, decimals: number = 2): string => {
   if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
@@ -36,8 +36,8 @@ export const formatBytes = (bytes:number, decimals: number = 2):string => {
  * @param {string} fileName - File name
  * @returns {string} - File extension
  */
-export const getFileExtension = (fileName: string):string => {
-  return fileName.split(".").pop()?.toLowerCase() || '';
+export const getFileExtension = (fileName: string): string => {
+  return fileName.split(".").pop()?.toLowerCase() || "";
 };
 
 /**
@@ -45,8 +45,8 @@ export const getFileExtension = (fileName: string):string => {
  * @param {string} extension - File extension
  * @returns {string} - MIME type
  */
-export const getMimeTypeFromExtension = (extension:string):string => {
-  const mimeTypeMap: Record<string,string> = {
+export const getMimeTypeFromExtension = (extension: string): string => {
+  const mimeTypeMap: Record<string, string> = {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     png: "image/png",
@@ -69,33 +69,46 @@ export const getMimeTypeFromExtension = (extension:string):string => {
 };
 
 /**
- * Download a file from base64 string
- * @param {string} base64 - Base64 string
+ * Download a file from a URL or base64 string
+ * @param {string} url - URL or base64 string
  * @param {string} fileName - File name
  * @param {string} fileType - MIME type
  */
-export const downloadFile = (base64:string, fileName:string, fileType:string): void => {
-  // Create blob from base64
-  if(typeof window === 'undefined')return ;//Guard for server Side
-  const byteCharacters = atob(base64.split(",")[1]);
-  const byteArrays:number[] = [];
+export const downloadFile = (
+  url: string,
+  fileName: string,
+  fileType: string
+): void => {
+  if (typeof window === "undefined") return; // Guard for server side
 
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteArrays.push(byteCharacters.charCodeAt(i));
+  if (url.startsWith("data:")) {
+    // It's a base64 string
+    const byteCharacters = atob(url.split(",")[1]);
+    const byteArrays: number[] = [];
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteArrays.push(byteCharacters.charCodeAt(i));
+    }
+
+    const byteArray = new Uint8Array(byteArrays);
+    const blob = new Blob([byteArray], { type: fileType });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    // It's a direct URL
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
-
-  const byteArray = new Uint8Array(byteArrays);
-  const blob = new Blob([byteArray], { type: fileType });
-
-  // Create download link
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
-
-  // Append to body, click and clean up
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 /**
@@ -104,21 +117,26 @@ export const downloadFile = (base64:string, fileName:string, fileType:string): v
  * @param {number} height - Canvas height
  * @returns {HTMLCanvasElement} - Canvas element
  */
-export const getBlankCanvas = (width:number, height:number) : HTMLCanvasElement => {
-  if(typeof window === 'undefined'){throw new Error('this function must be called in abrowser environment')};
+export const getBlankCanvas = (
+  width: number,
+  height: number
+): HTMLCanvasElement => {
+  if (typeof window === "undefined") {
+    throw new Error("this function must be called in abrowser environment");
+  }
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
 
   const ctx = canvas.getContext("2d");
-  if(ctx){
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, width, height);
+  if (ctx) {
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, width, height);
   }
   return canvas;
 };
 
-/** 
+/**
  * Create a thumbnail from an image
  * @param {string} base64 - Original image as base64
  * @param {number} maxWidth - Maximum width of thumbnail
@@ -156,13 +174,13 @@ export const createThumbnail = async (
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
-        if(ctx){
-        ctx.drawImage(img, 0, 0, width, height);
-        // Get base64 of thumbnail
-        const thumbnailBase64 = canvas.toDataURL("image/jpeg", 0.7);
-        resolve(thumbnailBase64);
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Get base64 of thumbnail
+          const thumbnailBase64 = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(thumbnailBase64);
+        }
       };
-    }
 
       img.onerror = () => reject(new Error("Failed to load image"));
       img.src = base64;

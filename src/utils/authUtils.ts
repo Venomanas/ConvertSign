@@ -32,7 +32,7 @@ export interface FileObject {
   processed: boolean;
   isSignature?: boolean;
   convertedFormat?: string;
-  dateProccessed?: string;
+  dateProcessed?: string;
 }
 
 /* note !!!

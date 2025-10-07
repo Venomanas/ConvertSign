@@ -49,9 +49,9 @@ const FileConverter: React.FC = () => {
     ) {
       return ["pdf", "csv"];
     } else if (
-      fileType === "application/vnd.ms-powerpont" ||
+      fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
-        "application/vnd.openxmlformats-officedocumnt.presentational.presentation"
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     ) {
       return ["pdf", "jpg"];
     } else {
@@ -84,6 +84,8 @@ const FileConverter: React.FC = () => {
       "image/jpeg": "jpg",
       "image/png": "png",
       "image/webp": "webp",
+      "image/gif": "gif",
+      "image/bmp": "bmp",
       "application/pdf": "pdf",
       "application/msword": "doc",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -95,8 +97,25 @@ const FileConverter: React.FC = () => {
       "application/vnd.ms-excel": "xls",
       "application/vnd.ms-powerpoint": "ppt",
       "text/plain": "txt",
+      "text/csv": "csv",
     };
     return typeMap[file.type] || file.type.split("/")[1];
+  };
+
+  // Add this function to properly map target formats to MIME types
+  const getMimeTypeForFormat = (format: FormatOption): string => {
+    const mimeMap: Record<FormatOption, string> = {
+      jpg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+      gif: "image/gif",
+      bmp: "image/bmp",
+      pdf: "application/pdf",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      txt: "text/plain",
+      csv: "text/csv",
+    };
+    return mimeMap[format];
   };
 
   const handleConvert = async (): Promise<void> => {
@@ -117,45 +136,75 @@ const FileConverter: React.FC = () => {
       );
       formData.append("targetFormat", targetFormat);
 
+      console.log("Sending conversion request...", {
+        file: selectedFile.name,
+        type: selectedFile.type,
+        target: targetFormat,
+      });
+
       const response = await fetch("/api/convert", {
         method: "POST",
         body: formData,
       });
 
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Non-JSON response:", text.substring(0, 200));
+        throw new Error(
+          `Server returned ${response.status}: ${response.statusText}. Please check if the API route exists.`
+        );
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Conversion failed");
+        throw new Error(
+          errorData.error || `Conversion failed with status ${response.status}`
+        );
       }
 
       const { convertedFile: convertedFileBase64, fileName } =
         await response.json();
+
+      if (!convertedFileBase64) {
+        throw new Error("No converted file data received from server");
+      }
+
+      // Convert base64 to blob
       const byteCharacters = atob(convertedFileBase64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
+
+      // Use proper MIME type
+      const correctMimeType = getMimeTypeForFormat(
+        targetFormat as FormatOption
+      );
       const newBlob = new Blob([byteArray], {
-        type: `application/${targetFormat}`,
+        type: correctMimeType,
       });
 
-      // Fix: Add the missing dateAdded property
+      // Create new file object
       const newFile: FileObject = {
-        id: new Date().toISOString(),
+        id: `converted_${Date.now()}`,
         name: fileName,
         url: URL.createObjectURL(newBlob),
         size: newBlob.size,
-        type: newBlob.type,
-        dateAdded: new Date().toISOString(), // Add this required property
+        type: correctMimeType,
+        dateAdded: new Date().toISOString(),
         processed: true,
         convertedFormat: targetFormat,
-        dateProccessed: new Date().toISOString(),
+        dateProcessed: new Date().toISOString(),
       };
 
       addFile(newFile);
       setConvertedFile(newFile);
+
+      console.log("Conversion successful!", newFile);
     } catch (error: unknown) {
-      // Fix: Replace 'any' with 'unknown'
       console.error("Conversion error:", error);
       setConversionError(
         error instanceof Error
@@ -166,7 +215,6 @@ const FileConverter: React.FC = () => {
       setIsConverting(false);
     }
   };
-
   const handleDownload = (file: FileObject | null) => {
     if (!file) return;
     const a = document.createElement("a");

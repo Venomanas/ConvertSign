@@ -105,22 +105,22 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
   };
 
   // Update resized image - creates new file instead of updating
-  const updateResizedImage = (fileId: string, resizedBase64: string): void => {
-    const originalFile = files.find(f => f.id === fileId);
-    if (!originalFile) return;
+ const updateResizedImage = (fileId: string, resizedBase64: string): void => {
+   const originalFile = files.find(f => f.id === fileId);
+   if (!originalFile) return;
 
-    const resizedFile: FileObject = {
-      ...originalFile,
-      id: `resized_${Date.now()}`,
-      name: `resized_${originalFile.name}`,
-      base64: resizedBase64,
-      size: Math.round((resizedBase64.length * 3) / 4),
-      processed: true,
-      dateProccessed: new Date().toISOString(),
-    };
+   const resizedFile: FileObject = {
+     ...originalFile,
+     id: `resized_${Date.now()}`,
+     name: `resized_${originalFile.name}`,
+     base64: resizedBase64,
+     size: Math.round((resizedBase64.length * 3) / 4),
+     processed: true,
+     dateProcessed: new Date().toISOString(), // Fixed spelling
+   };
 
-    addFile(resizedFile);
-  };
+   addFile(resizedFile);
+ };
 
   const contextValue: FileContextType = {
     files,

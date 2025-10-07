@@ -180,7 +180,7 @@ const FileConverter: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto ">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-400">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-300">
         Convert Files
       </h2>
       {files.length === 0 ? (
@@ -359,7 +359,7 @@ const FileConverter: React.FC = () => {
       )}
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-slate-400">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-slate-300">
           About File Conversion
         </h3>
         <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">

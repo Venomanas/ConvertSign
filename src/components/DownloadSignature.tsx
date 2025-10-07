@@ -14,7 +14,7 @@ const DownloadSignature: React.FC = () => {
 
   return (
     <div className="mt-8">
-      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-slate-400">
+      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-slate-600">
         Your Saved Signatures
       </h3>
       {signatureFiles.length > 0 ? (

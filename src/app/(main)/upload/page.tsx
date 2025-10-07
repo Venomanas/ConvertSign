@@ -56,7 +56,7 @@ const FileUploader: React.FC = () => {
     }
   };
 
-const handleFiles = async (fileList: FileList) => {
+  const handleFiles = async (fileList: FileList) => {
   setIsUploading(true);
   setUploadError("");
   setUploadedCount(0);
@@ -120,7 +120,7 @@ const handleFiles = async (fileList: FileList) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200 dark:bg-slate-400">
+    <div className="max-w-4xl mx-auto  p-6 bg-white rounded-xl shadow-lg border-none dark:bg-slate-100">
       <h2 className="text-3xl font-bold tracking-tight text-slate-800 text-center mb-8">
         Upload Your Files
       </h2>
@@ -129,9 +129,9 @@ const handleFiles = async (fileList: FileList) => {
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
           dragActive
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-gray-300 bg-gray-50"
-        } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-300 bg-slate-100`}
+            ? "border-indigo-500 bg-white"
+            : "border-black "
+        } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-100 bg-slate-100`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -146,7 +146,7 @@ const handleFiles = async (fileList: FileList) => {
             }`}
           />
           <p className="mb-2 text-black text-center">
-            <span className="font-semibold text-indigo-600">Drag and drop</span>{" "}
+            <span className="font-semibold text-indigo-900">Drag and drop</span>{" "}
             your files here
           </p>
           <p className="text-xs max-w-sm text-gray-700 mb-4 text-center p-2">
@@ -263,9 +263,9 @@ const handleFiles = async (fileList: FileList) => {
       </div>
 
       {/* How to Use */}
-      <div className="mt-8 bg-indigo-50 rounded-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">How to Use</h3>
-        <ol className="space-y-3">
+      <div className="mt-1  rounded-lg p-6">
+        <h3 className="text-xl font-bold text-black mb-4">How to Use</h3>
+        <ol className="space-y-3 space-x-1">
           {[
             "Upload your files using drag & drop or the upload button",
             "Files are stored securely in your browser",
@@ -281,6 +281,7 @@ const handleFiles = async (fileList: FileList) => {
           ))}
         </ol>
       </div>
+
     </div>
   );
 };

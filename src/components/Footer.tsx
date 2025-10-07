@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link"; // Use Next.js Link for internal navigation
 
 const Footer = () => {
   return (
@@ -10,31 +9,9 @@ const Footer = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
           {/* Copyright Information */}
           <p className="text-sm text-center sm:text-left">
-            &copy; {new Date().getFullYear()} ConvertSign. All Rights Reserved.
+            &copy; {new Date().getFullYear()} ConvertSign, Created By Anas Sayyed.
           </p>
-
-          {/* Footer Links */}
-          <nav className="flex items-center space-x-4 sm:space-x-6 text-sm ">
-            <Link
-              href="/privacy"
-              className=" dark:hover:text-white transition-colors duration-200"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms"
-              className=" dark:hover:text-white transition-colors duration-200"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/help"
-              className=" dark:hover:text-white transition-colors duration-200"
-            >
-              Help
-            </Link>
-          </nav>
-        </div>
+          </div>
       </div>
     </footer>
   );

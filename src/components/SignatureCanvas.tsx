@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useFileContext } from "@/context/FileContext";
 import Image from "next/image";
 import { FileObject } from "@/utils/authUtils";
+import DownloadSignature from "@/components/DownloadSignature";
 
 // Type definitions
 interface ColorOption {
@@ -31,7 +32,6 @@ const SignatureCanvas: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [penColor, setPenColor] = useState<string>("#000000");
   const [penSize, setPenSize] = useState<number>(2);
-  const [showControls, setShowControls] = useState<boolean>(true);
   const [signatureName, setSignatureName] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -178,7 +178,6 @@ const SignatureCanvas: React.FC = () => {
     context.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSignatureName(e.target.value);
   };
@@ -259,10 +258,36 @@ const SignatureCanvas: React.FC = () => {
       setError("Failed to save signature. Please try again.");
     }
   };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    const resizeCanvas = () => {
+      // We store the current canvas content, resize, and then restore it
+      const currentDrawing = canvas.toDataURL();
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight > 250 ? 250 : parent.clientHeight; // Set a max-height or use parent's
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const img = new window.Image();
+        img.src = currentDrawing;
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-400">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-300">
         Create Signature
       </h2>
 
@@ -272,7 +297,7 @@ const SignatureCanvas: React.FC = () => {
           <div className="bg-gray-100 border-2 border-gray-300 rounded-lg">
             <canvas
               ref={canvasRef}
-              className="w-full h-64 md:h-80 touch-none cursor-crosshair"
+              className="w-full h-64 md:h-80 touch-none cursor-crosshair "
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -298,54 +323,12 @@ const SignatureCanvas: React.FC = () => {
             </div>
           )}
 
-          {/* Canvas Controls */}
-          <div
-            className={`mt-4 flex flex-wrap gap-4 ${
-              showControls ? "" : "hidden"
-            }`}
-          >
-            <button
-              onClick={clearCanvas}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors flex-1 sm:flex-none"
-            >
-              Clear
-            </button>
-            <button
-              onClick={() => setShowControls(!showControls)}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors flex-1 sm:flex-none"
-            >
-              Hide Controls
-            </button>
-          </div>
-          <Image
-            src={"paint.svg"}
-            alt="Upload Files"
-            width={100}
-            height={100}
-            className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
-          />
-
-          {/* Show Controls Button (only appears when controls are hidden) */}
-          <div className={`mt-4 ${showControls ? "hidden" : ""}`}>
-            <button
-              onClick={() => setShowControls(true)}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors"
-            >
-              Show Controls
-            </button>
-          </div>
-        </div>
-
-        {/* Sidebar Controls */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4 text-black">
-            Signature Options
-          </h3>
-
-          {/* Name Input */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Signature Name:
+            <label
+              htmlFor="signatureName"
+              className="block text-lg font-semibold mb-4 text-black  "
+            >
+              Name Your Signature
             </label>
             <input
               type="text"
@@ -356,6 +339,31 @@ const SignatureCanvas: React.FC = () => {
               font-stretch-condensed"
             />
           </div>
+
+          {/* Canvas Controls */}
+          <div className="mt-4 flex flex-wrap gap-4">
+            <button
+              onClick={clearCanvas}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors flex-1 sm:flex-none "
+            >
+              Clear
+            </button>
+            <button
+              onClick={saveSignature}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors flex-1 sm:flex-none "
+            >
+              Save Signature
+            </button>
+          </div>
+
+          <DownloadSignature />
+        </div>
+
+        {/* Sidebar Controls */}
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-4 text-black">
+            Signature Options
+          </h3>
 
           {/* Color Selection */}
           <div className="mb-4">
@@ -369,7 +377,7 @@ const SignatureCanvas: React.FC = () => {
                   onClick={() => setPenColor(color.value)}
                   className={`w-8 h-8 rounded-full ${
                     penColor === color.value
-                      ? "ring-2 ring-offset-2 ring-blue-500"
+                      ? "ring-2 ring-offset-2 ring-indigo-500"
                       : ""
                   }`}
                   style={{ backgroundColor: color.value }}
@@ -402,17 +410,17 @@ const SignatureCanvas: React.FC = () => {
                 onChange={handleSizeChange}
                 className="w-full"
               />
-              <span className="text-sm text-gray-500">{penSize}</span>
+              <span className="text-sm text-black">{penSize}</span>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {availableSizes.map((size: SizeOption) => (
                 <button
                   key={size.value}
                   onClick={() => setPenSize(size.value)}
-                  className={`px-2 py-1 text-xs rounded ${
+                  className={`px-2 py-1 text-sm rounded ${
                     penSize === size.value
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-indigo-400 text-white"
+                      : "bg-indigo-100 text-black"
                   }`}
                   type="button"
                 >
@@ -422,17 +430,15 @@ const SignatureCanvas: React.FC = () => {
             </div>
           </div>
 
-          {/* Save Button */}
-          <button
-            onClick={saveSignature}
-            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors"
-            type="button"
-          >
-            Save Signature
-          </button>
-
           {/* Instructions */}
-          <div className="mt-6 text-sm text-gray-600 bg-indigo-100 rounded-2xl object-contain">
+          <div className="mt-6 text-sm text-black bg-indigo-50 rounded-2xl object-contain pt-2 pb-2">
+            <Image
+              src={"paint.svg"}
+              alt="Upload Files"
+              width={100}
+              height={100}
+              className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
+            />
             <div className="mt-1 px-2 py-1 mb-1">
               <ul className="list-disc pl-5 space-y-1">
                 <li>Use your mouse or finger to draw</li>
@@ -442,25 +448,6 @@ const SignatureCanvas: React.FC = () => {
               </ul>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-slate-400">
-          About Digital Signatures
-        </h3>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-900 shadow-sm">
-          <p className="mb-2">Our digital signature tool allows you to:</p>
-          <ul className="list-disc pl-5 mb-2 space-y-1">
-            <li>Create digital signatures for documents</li>
-            <li>Customize appearance with different colors and sizes</li>
-            <li>Save multiple signatures for different purposes</li>
-            <li>Access your signatures anytime from your dashboard</li>
-          </ul>
-          <p>
-            Created signatures can be downloaded and used in PDF documents or
-            other files.
-          </p>
         </div>
       </div>
     </div>

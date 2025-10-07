@@ -155,7 +155,7 @@ const ResizePage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center dark:text-slate-400">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center dark:text-slate-300">
         Image Resizer
       </h1>
 
@@ -214,7 +214,7 @@ const ResizePage: React.FC = () => {
                         <p className="mt-4 text-gray-600">Loading image...</p>
                       </div>
                     ) : preview ? (
-                      <img
+                      <Image
                         src={preview}
                         alt="Preview"
                         className="max-w-full max-h-[400px] object-contain"

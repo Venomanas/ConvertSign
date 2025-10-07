@@ -247,39 +247,41 @@ const DashboardContent = (): JSX.Element => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center dark:text-slate-300">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           Your Dashboard
         </h2>
-        <p className="mt-2 text-center text-sm text-green-500 dark:text-green-300">
-          Welcome back, {currentUser.email}! Manage your uploaded files here.
+        <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+          Welcome back, {currentUser.email}!
         </p>
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white rounded-md outline-none">
-        <div className="relative flex flex-grow rounded-full ">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none rounded-full">
-            <MagnifyingGlassIcon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
+      <div className="mb-6 p-4 bg-white dark:bg-slate-400 rounded-lg shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-indigo-500" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search files..."
+              className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 text-sm bg-gray-50 dark:bg-slate-100 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
+            />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search files..."
-            className="block w-full rounded-md pl-10 pr-3 py-2 text-sm placeholder-gray-800 focus:ring-indigo-500 sm:text-sm text-black dark:text-black dark:placeholder-slate-700"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-900 dark:text-slate-700">
-            Sort by:
-          </span>
-          <div className="flex items-center space-x-2 ">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="sort-by"
+              className="text-sm font-medium text-gray-700 dark:text-slate-300"
+            ></label>
             <select
+              id="sort-by"
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortBy)}
-              className="block w-full rounded-md border-gray-900 py-2 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-slate-100 text-black dark:bg-slate-200 dark:text-slate-800"
+              className="block w-full rounded-md border-gray-300 dark:border-slate-600 py-2 pl-3 pr-8 text-sm bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -290,13 +292,13 @@ const DashboardContent = (): JSX.Element => {
               onClick={() =>
                 setSortDirection(sortDirection === "asc" ? "desc" : "asc")
               }
-              className="p-2 rounded-md dark:hover:bg-indigo-100 hover:bg-slate-100"
+              className="p-2 rounded-md  hover:bg-gray-100 dark:hover:bg-slate-900"
               aria-label="Toggle sort direction"
             >
               {sortDirection === "asc" ? (
-                <ChevronUpIcon className="w-5 h-5 text-gray-500" />
+                <ChevronUpIcon className="w-5 h-5 text-black dark:text-white" />
               ) : (
-                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
+                <ChevronDownIcon className="w-5 h-5 text-black dark:text-white" />
               )}
             </button>
           </div>
@@ -304,40 +306,43 @@ const DashboardContent = (): JSX.Element => {
       </div>
 
       {/* Tab navigation */}
-      <div className="mb-6 border-b border-gray-200 overflow-x-auto bg-white rounded-sm  ">
-        <nav className="-mb-px flex space-x-4">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as ActiveTab)}
-              className={`group inline-flex items-center gap-2 py-2 px-3 border-b-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-black hover:text-gray-700 hover:border-indigo-300 dark:text-black"
-              }`}
-            >
-              {React.cloneElement(tab.icon as JSX.Element, {
-                className: `w-5 h-5 ${
+      <div className="mb-6">
+        <div className="border-b border-gray-200 dark:border-slate-300">
+          <nav className="-mb-px flex space-x-4 overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as ActiveTab)}
+                className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "text-indigo-500"
-                    : "text-gray-400 group-hover:text-gray-500  "
-                }`,
-              })}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
+                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                    : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 hover:border-gray-300 dark:hover:text-slate-200 dark:hover:border-slate-500"
+                }`}
+              >
+                {tab.icon &&
+                  React.cloneElement(tab.icon, {
+                    className: `w-5 h-5 ${
+                      activeTab === tab.id
+                        ? "text-indigo-500 dark:text-indigo-400"
+                        : "text-gray-400 dark:text-slate-500 group-hover:text-gray-500 dark:group-hover:text-slate-400"
+                    }`,
+                  })}
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* File List */}
       {files.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-semibold text-gray-900">
+        <div className="text-center py-12 px-4 bg-white dark:bg-slate-100 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+          <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
+          <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-black">
             No files yet
           </h3>
-          <p className="mt-1 text-sm text-red-500">
-            Upload files to get started with your dashboard.
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            Upload files to get started.
           </p>
           <Image
             src={"choose2.svg"}
@@ -348,32 +353,32 @@ const DashboardContent = (): JSX.Element => {
           />
           <button
             onClick={() => router.push("/upload")}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 transition-colors duration-200"
           >
             <ArrowUpTrayIcon className="w-4 h-4" />
             Upload Your First File
           </button>
         </div>
       ) : filteredFiles.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-sm font-semibold text-gray-900">
-            No files match your search or filter criteria.
+        <div className="text-center py-12 px-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
+          <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+            No files found
           </p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             Try adjusting your search or changing the active tab.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredFiles.map(file => (
               <div
                 key={file.id}
-                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group"
+                className="bg-white dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
               >
                 {/* File Preview */}
-                <div className="h-44 bg-muted/40 flex items-center justify-center relative p-4">
+                <div className="h-48 bg-gray-100 dark:bg-slate-300 flex items-center justify-center relative p-2">
                   {file.type.startsWith("image/") && file.base64 ? (
                     <Base64Image
                       src={file.base64}
@@ -383,86 +388,59 @@ const DashboardContent = (): JSX.Element => {
                   ) : (
                     <div className="text-4xl">{getFileIcon(file)}</div>
                   )}
-
                   {/* Badges */}
                   <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
                     {file.processed && (
-                      <div className="bg-green-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
                         Processed
-                      </div>
+                      </span>
                     )}
                     {file.isSignature && (
-                      <div className="bg-purple-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">
                         Signature
-                      </div>
-                    )}
-                    {file.convertedFormat && (
-                      <div className="bg-blue-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        Converted
-                      </div>
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* File Info */}
-                <div className="p-5 border-t border-border flex flex-col flex-grow">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="font-semibold text-slate-900 truncate"
-                        title={file.name}
-                      >
-                        {file.name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatBytes(file.size)} •{" "}
-                        {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
-                      </p>
-                      {file.convertedFormat && (
-                        <p className="mt-1 text-xs text-indigo-600">
-                          Converted to: {file.convertedFormat.toUpperCase()}
-                        </p>
-                      )}
-                    </div>
-                    <div className="ml-4 flex-shrink-0 text-gray-400">
-                      {getFileIcon(file)}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-gray-400 mt-2">
+                <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col flex-grow">
+                  <p
+                    className=" text-gray-900 dark:text-white truncate"
+                    title={file.name}
+                  >
+                    {file.name}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                    {formatBytes(file.size)} •{" "}
+                    {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
                     Added: {new Date(file.dateAdded).toLocaleDateString()}
                   </p>
 
-                  {file.dateProccessed && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Processed:{" "}
-                      {new Date(file.dateProccessed).toLocaleDateString()}
-                    </p>
-                  )}
-
                   {/* Actions */}
-                  <div className="mt-4 pt-3 border-t border-border/50 flex gap-2 justify-end">
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
                     <button
                       onClick={() => handleDownload(file)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-400 text-white text-sm font-semibold transition-colors duration-200 hover:bg-indigo-900"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm  transition-colors duration-200 hover:bg-indigo-700"
                     >
                       <ArrowDownTrayIcon className="w-4 h-4" />
                       Download
                     </button>
                     <button
                       onClick={() => handleDelete(file.id)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-50 text-red-600 border border-red-200 text-sm font-semibold transition-colors duration-200 hover:bg-red-100 dark:hover:bg-slate-800  dark:text-red-400 dark:border-red-600"
+                      className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200 "
                     >
                       <TrashIcon className="w-4 h-4" />
-                      Delete
                     </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <p className="mt-8 text-sm text-gray-500 text-center dark:text-slate-400">
-            Showing {filteredFiles.length} of {files.length} files
+          <p className="mt-8 text-sm text-gray-500 dark:text-slate-400 text-center">
+            Showing {filteredFiles.length} of {files.length} files.
           </p>
         </>
       )}

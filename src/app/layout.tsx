@@ -32,7 +32,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            <FileProvider>{children}</FileProvider>
+            <FileProvider>
+              {children}   
+            </FileProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

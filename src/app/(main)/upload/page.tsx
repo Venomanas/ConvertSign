@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { useFileContext } from "@/context/FileContext";
 import { fileToBase64 } from "@/utils/fileUtils";
@@ -15,7 +14,6 @@ const FileUploader: React.FC = () => {
   const [uploadedCount, setUploadedCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-
   const acceptedFileTypes = [
     "image/jpeg",
     "image/png",
@@ -57,80 +55,79 @@ const FileUploader: React.FC = () => {
   };
 
   const handleFiles = async (fileList: FileList) => {
-  setIsUploading(true);
-  setUploadError("");
-  setUploadedCount(0);
-  let successCount = 0;
-  const errors: string[] = [];
+    setIsUploading(true);
+    setUploadError("");
+    setUploadedCount(0);
+    let successCount = 0;
+    const errors: string[] = [];
 
-  for (let i = 0; i < fileList.length; i++) {
-    const file = fileList[i];
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
 
-    if (!acceptedFileTypes.includes(file.type)) {
-      errors.push(`${file.name}: Unsupported file type`);
-      continue;
+      if (!acceptedFileTypes.includes(file.type)) {
+        errors.push(`${file.name}: Unsupported file type`);
+        continue;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        errors.push(`${file.name}: File too large (max 10MB)`);
+        continue;
+      }
+
+      try {
+        const base64 = await fileToBase64(file);
+
+        // Fix: Add missing url property
+        addFile({
+          id: `${Date.now()}-${i}`,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: base64, // Use base64 as temporary URL
+          base64: base64,
+          dateAdded: new Date().toISOString(),
+          processed: false,
+          isSignature: false,
+        });
+
+        successCount++;
+        setUploadedCount(successCount);
+      } catch (error) {
+        console.error("Error processing file:", error);
+        errors.push(`${file.name}: Failed to process`);
+      }
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      errors.push(`${file.name}: File too large (max 10MB)`);
-      continue;
+    setIsUploading(false);
+    if (errors.length > 0) {
+      setUploadError(errors.join("\n"));
     }
 
-    try {
-      const base64 = await fileToBase64(file);
-
-      // Fix: Add missing url property
-      addFile({
-        id: `${Date.now()}-${i}`,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        url: base64, // Use base64 as temporary URL
-        base64: base64,
-        dateAdded: new Date().toISOString(),
-        processed: false,
-        isSignature: false,
-      });
-
-      successCount++;
-      setUploadedCount(successCount);
-    } catch (error) {
-      console.error("Error processing file:", error);
-      errors.push(`${file.name}: Failed to process`);
+    if (inputRef.current) {
+      inputRef.current.value = "";
     }
-  }
 
-  setIsUploading(false);
-  if (errors.length > 0) {
-    setUploadError(errors.join("\n"));
-  }
+    // if (successCount > 0) {
+    //   setTimeout(() => {
+    //     setUploadedCount(0);
+    //   }, 3000);
+    // }
+  };
 
-  if (inputRef.current) {
-    inputRef.current.value = "";
-  }
-
-  if (successCount > 0) {
-    setTimeout(() => {
-      setUploadedCount(0);
-    }, 3000);
-  }
-};
   const handleButtonClick = () => {
     inputRef.current?.click();
   };
 
   return (
     <div className="max-w-4xl mx-auto  p-6 bg-white rounded-xl shadow-lg border-none dark:bg-slate-100">
-      <h2 className="text-3xl font-bold tracking-tight text-slate-800 text-center mb-8">
+      <h2 className="text-2xl font-semibold tracking-tight text-slate-800 text-center mb-8">
         Upload Your Files
       </h2>
 
       {/* Upload Area */}
       <div
         className={`border-2 border-dashed rounded-lg p-8 ${
-          dragActive
-            ? "border-indigo-500 bg-white"
-            : "border-black "
+          dragActive ? "border-indigo-500 bg-white" : "border-black "
         } transition-all duration-200 flex flex-col items-center justify-center dark:bg-slate-100 bg-slate-100`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -146,11 +143,14 @@ const FileUploader: React.FC = () => {
             }`}
           />
           <p className="mb-2 text-black text-center">
-            <span className="font-semibold text-indigo-900">Drag and drop</span>{" "}
+            <span className="font-semibold text-indigo-500">
+              {" "}
+              Drag and drop{" "}
+            </span>
             your files here
           </p>
-          <p className="text-xs max-w-sm text-gray-700 mb-4 text-center p-2">
-            PNG, JPG, PDF, DOCX, and more. Max 10MB per file.
+          <p className="text-sm max-w-sm text-indigo-400 font-normal mb-4 text-center p-2">
+            Max 10 MB per file.
           </p>
         </div>
 
@@ -204,30 +204,31 @@ const FileUploader: React.FC = () => {
           <p className="text-sm text-red-800 font-semibold mb-2">
             Upload errors:
           </p>
-          <pre className="text-xs text-red-700 whitespace-pre-wrap">
+          <pre className="text-sm text-red-700 whitespace-pre-wrap">
             {uploadError}
           </pre>
         </div>
       )}
 
-      {/* Quick Actions */}
       {uploadedCount > 0 && !isUploading && (
         <div className="mt-6 flex flex-wrap gap-3 justify-center">
           <button
             onClick={() => router.push("/dashboard")}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
+            className="px-6 py-2 bg-indigo-600 dark:bg-slate-900 text-white rounded-md hover:bg-indigo-400 dark:hover:bg-indigo-700 transition-colors font-medium"
           >
             Go to Dashboard
           </button>
+
           <button
             onClick={() => router.push("/convert")}
-            className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+            className="px-6 py-2 bg-indigo-100 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
           >
             Convert Files
           </button>
+
           <button
             onClick={() => router.push("/resize")}
-            className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+            className="px-6 py-2 bg-indigo-100 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
           >
             Resize Images
           </button>
@@ -281,7 +282,6 @@ const FileUploader: React.FC = () => {
           ))}
         </ol>
       </div>
-
     </div>
   );
 };

@@ -226,48 +226,47 @@ const FileConverter: React.FC = () => {
     URL.revokeObjectURL(file.url);
   };
 
-  return (
-    <div className="max-w-4xl mx-auto ">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-300">
+   return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
         Convert Files
       </h2>
       {files.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-600">No files available for conversion.</p>
-          <p className="text-red-500 text-sm mt-2">
+        <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-gray-600 px-4">No files available for conversion.</p>
+          <p className="text-red-500 text-sm mt-2 px-4">
             Please upload files first.
           </p>
           <button
             onClick={() => router.push("/upload")}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-slate-500 dark:text-white hover:text-white text-sm font-semibold rounded-md hover:bg-indigo-300 dark:hover:bg-slate-900 dark:bg-slate-700 transition-colors duration-200"
           >
-            {" "}
-            Click here to Upload{" "}
+            Click here to Upload
           </button>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
               Select File to Convert
             </h3>
 
-            <div className="max-h-72 overflow-y-auto pr-2">
+            <div className="max-h-60 sm:max-h-72 overflow-y-auto pr-2">
               {files.map(file => (
                 <div
                   key={file.id}
                   onClick={() => handleFileSelect(file.id)}
-                  className={`flex items-center p-3 mb-2 rounded-md cursor-pointer transition-colors ${
+                  className={`flex items-center p-2 sm:p-3 mb-2 rounded-md cursor-pointer transition-colors ${
                     selectedFile?.id === file.id
                       ? "bg-white hover:bg-indigo-100 border border-indigo-300"
                       : "bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
                   {/* File type icon */}
-                  <div className="mr-3">
+                  <div className="mr-2 sm:mr-3 flex-shrink-0">
                     {file.type.startsWith("image/") ? (
                       <svg
-                        className="w-6 h-6 text-black"
+                        className="w-5 h-5 sm:w-6 sm:h-6 text-black"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -282,7 +281,7 @@ const FileConverter: React.FC = () => {
                       </svg>
                     ) : file.type.includes("pdf") ? (
                       <svg
-                        className="w-6 h-6 text-red-500"
+                        className="w-5 h-5 sm:w-6 sm:h-6 text-red-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -297,7 +296,7 @@ const FileConverter: React.FC = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="w-6 h-6 text-gray-500"
+                        className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -315,7 +314,7 @@ const FileConverter: React.FC = () => {
 
                   {/* File name and info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                       {file.name}
                     </p>
                     <p className="text-xs text-gray-900">
@@ -328,34 +327,34 @@ const FileConverter: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
               Conversion Options
             </h3>
 
             {selectedFile ? (
               <>
                 <div className="mb-4">
-                  <p className="mb-2 text-sm text-black">Selected File:</p>
-                  <div className="p-3 bg-indigo-50 rounded-md">
-                    <p className="font-medium text-black">
+                  <p className="mb-2 text-xs sm:text-sm text-black">Selected File:</p>
+                  <div className="p-2 sm:p-3 bg-indigo-50 rounded-md">
+                    <p className="text-xs sm:text-sm font-medium text-black break-words">
                       {selectedFile.name}
                     </p>
-                    <p className="text-xs text-gray-900">
+                    <p className="text-xs text-gray-900 mt-1">
                       Original format:{" "}
                       {getOriginalFormat(selectedFile).toUpperCase()}
                     </p>
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-black mb-1">
+                <div className="mb-4 sm:mb-6">
+                  <label className="block text-xs sm:text-sm font-medium text-black mb-1">
                     Convert to:
                   </label>
                   <select
                     value={targetFormat}
                     onChange={handleFormatChange}
-                    className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                    className="w-full px-3 py-2 text-sm border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                   >
                     <option value="">Select target format</option>
                     {getTargetFormats(selectedFile.type).map(format => (
@@ -367,16 +366,16 @@ const FileConverter: React.FC = () => {
                 </div>
 
                 {conversionError && (
-                  <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded-md">
+                  <div className="mb-4 p-2 bg-red-50 text-red-700 text-xs sm:text-sm rounded-md break-words">
                     {conversionError}
                   </div>
                 )}
                 {convertedFile && (
-                  <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded-md">
+                  <div className="mb-4 p-2 bg-green-50 text-green-700 text-xs sm:text-sm rounded-md">
                     <p>Conversion successful!</p>
                     <button
                       onClick={() => handleDownload(convertedFile)}
-                      className="text-indigo-600 hover:underline"
+                      className="text-indigo-600 hover:underline mt-1"
                     >
                       Download Converted File
                     </button>
@@ -386,7 +385,7 @@ const FileConverter: React.FC = () => {
                 <button
                   onClick={handleConvert}
                   disabled={!targetFormat || isConverting}
-                  className={`w-full py-2 px-4 rounded-md transition-colors ${
+                  className={`w-full py-2 px-4 text-sm sm:text-base rounded-md transition-colors ${
                     !targetFormat || isConverting
                       ? "bg-gray-300 text-black cursor-not-allowed"
                       : "bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white"
@@ -396,8 +395,8 @@ const FileConverter: React.FC = () => {
                 </button>
               </>
             ) : (
-              <div className="text-center py-10">
-                <p className="text-gray-500">
+              <div className="text-center py-8 sm:py-10">
+                <p className="text-sm text-gray-500 px-4">
                   Select a file to see conversion options
                 </p>
               </div>
@@ -406,19 +405,19 @@ const FileConverter: React.FC = () => {
         </div>
       )}
 
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-slate-300">
+      <div className="mt-6 sm:mt-8">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700 dark:text-slate-300">
           About File Conversion
         </h3>
-        <div className="bg-white p-4 rounded-lg text-sm text-gray-600 shadow-sm">
+        <div className="bg-white p-4 rounded-lg text-xs sm:text-sm text-gray-600 shadow-sm">
           <Image
             src={"convert1.svg"}
             alt="Upload Files"
-            width={150}
-            height={150}
-            className="mx-auto mb-3  transition-transform duration-300 group-hover:scale-110 "
+            width={120}
+            height={120}
+            className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
           />
-          <p className="mb-2">convert files between various formats:</p>
+          <p className="mb-2">Convert files between various formats:</p>
           <ul className="list-disc pl-5 mb-2 space-y-1">
             <li>Convert JPG, PNG, WebP, and more</li>
             <li>Convert documents between PDF, DOC, and TXT formats</li>
@@ -428,8 +427,8 @@ const FileConverter: React.FC = () => {
           <p>
             All conversions are processed securely at your browser local storage
           </p>
-          <div className="security-note mt-8 p-4 bg-green-50 border border-green-200/80 rounded-lg">
-            <p className="text-center font-medium m-2 p-2 ">
+          <div className="security-note mt-4 sm:mt-8 p-3 sm:p-4 bg-green-50 border border-green-200/80 rounded-lg">
+            <p className="text-center font-medium">
               After conversion all the files will be displayed at Dashboard
             </p>
           </div>
@@ -438,5 +437,6 @@ const FileConverter: React.FC = () => {
     </div>
   );
 };
+
 
 export default FileConverter;

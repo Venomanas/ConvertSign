@@ -247,7 +247,7 @@ const DashboardContent = (): JSX.Element => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-50 rounded-4xl dark:bg-slate-900 min-h-screen">
       <div className="mb-8 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           Your Dashboard

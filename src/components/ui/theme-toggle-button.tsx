@@ -20,7 +20,7 @@ interface ThemeToggleAnimationProps {
 }
 
 export default function ThemeToggleButton({
-  variant = "circle-blur",
+  variant = "polygon",
   start = "top-left",
   showLabel = false,
   url = "",

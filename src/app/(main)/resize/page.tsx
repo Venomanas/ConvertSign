@@ -154,40 +154,42 @@ const ResizePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center dark:text-slate-300">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 text-center dark:text-slate-300">
         Image Resizer
       </h1>
 
       {imageFiles.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-          <p className="text-gray-600 mb-4">No images available to resize.</p>
+        <div className="text-center py-8 sm:py-12 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-600 mb-4 px-4">
+            No images available to resize.
+          </p>
           <button
             onClick={() => router.push("/upload")}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base"
           >
             Upload Images
           </button>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* File Selection */}
           <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
               Select Image
             </h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto">
               {imageFiles.map(file => (
                 <div
                   key={file.id}
                   onClick={() => setSelectedFile(file)}
-                  className={`p-3 rounded-md cursor-pointer transition-colors ${
+                  className={`p-2 sm:p-3 rounded-md cursor-pointer transition-colors ${
                     selectedFile?.id === file.id
                       ? "bg-indigo-50 border-2 border-indigo-300"
                       : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                   }`}
                 >
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                     {file.name}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -199,47 +201,51 @@ const ResizePage: React.FC = () => {
           </div>
 
           {/* Resize Controls & Preview */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {selectedFile ? (
               <>
                 {/* Preview */}
                 <div className="bg-white p-4 rounded-lg shadow-md">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                     Preview
                   </h3>
-                  <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center min-h-[300px]">
+                  <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
                     {isLoading ? (
                       <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Loading image...</p>
+                        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600 text-sm">
+                          Loading image...
+                        </p>
                       </div>
                     ) : preview ? (
                       <Image
                         src={preview}
                         alt="Preview"
-                        className="max-w-full max-h-[400px] object-contain"
+                        className="max-w-full max-h-[300px] sm:max-h-[400px] object-contain"
                       />
                     ) : (
-                      <p className="text-gray-400">No preview available</p>
+                      <p className="text-gray-400 text-sm">
+                        No preview available
+                      </p>
                     )}
                   </div>
                 </div>
 
                 {/* Controls */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                  <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                     Resize Settings
                   </h3>
 
                   {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                    <div className="mb-4 p-2 sm:p-3 bg-red-50 text-red-700 rounded-md text-xs sm:text-sm break-words">
                       {error}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         Width (px)
                       </label>
                       <input
@@ -248,11 +254,11 @@ const ResizePage: React.FC = () => {
                         max="10000"
                         value={width}
                         onChange={handleWidthChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                        className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         Height (px)
                       </label>
                       <input
@@ -261,12 +267,12 @@ const ResizePage: React.FC = () => {
                         max="10000"
                         value={height}
                         onChange={handleHeightChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                        className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -274,19 +280,19 @@ const ResizePage: React.FC = () => {
                         onChange={e => setMaintainAspectRatio(e.target.checked)}
                         className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">
+                      <span className="text-xs sm:text-sm text-gray-700">
                         Maintain aspect ratio
                       </span>
                     </label>
                     <button
                       onClick={handleReset}
-                      className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                     >
                       Reset to original
                     </button>
                   </div>
 
-                  <div className="text-sm text-gray-600 mb-6 p-3 bg-gray-50 rounded-md">
+                  <div className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 p-2 sm:p-3 bg-gray-50 rounded-md space-y-1">
                     <p>
                       Original: {originalWidth} × {originalHeight} px
                     </p>
@@ -295,17 +301,17 @@ const ResizePage: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => setSelectedFile(null)}
-                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
+                      className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={isProcessing || width <= 0 || height <= 0}
-                      className="flex-1 py-3 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                      className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                     >
                       {isProcessing ? "Saving..." : "Save Resized Image"}
                     </button>
@@ -313,15 +319,15 @@ const ResizePage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="bg-white p-12 rounded-lg shadow-md text-center">
+              <div className="bg-white p-8 sm:p-12 rounded-lg shadow-md text-center">
                 <Image
                   src="choose2.svg"
                   alt="Select image"
-                  width={120}
-                  height={120}
+                  width={100}
+                  height={100}
                   className="mx-auto mb-4 opacity-50"
                 />
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-600 px-4">
                   Select an image from the list to start resizing
                 </p>
               </div>

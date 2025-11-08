@@ -52,9 +52,9 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-md  transition-all duration-200 ${
                     isActive
-                      ? "bg-sky-50 text-blue-600 shadow-sm"
+                      ? "bg-sky-50 text-indigo-600 shadow-sm"
                       : "text-blue-100 hover:text-white hover:bg-white/10"
                   }`}
                 >
@@ -69,16 +69,16 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
             <ThemeToggleButton />
             <button
               onClick={onProfileClick}
-              className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-sky-600 hover:bg-sky-200 transition-colors duration-200 shadow-sm"
+              className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-indigo-600 hover:bg-indigo-200 transition-colors duration-200 shadow-sm"
               title="User Profile"
             >
-              <span className="font-bold text-base">{userInitial}</span>
+              <span className="font-semibold text-base">{userInitial}</span>
             </button>
 
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMobileMenu}
-              className="lg:hidden p-2 rounded-md text-blue-100 hover:text-white hover:bg-white/10 transition-colors"
+              className="lg:hidden p-2 rounded-md text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle menu"
             >
               <svg
@@ -114,10 +114,10 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-left px-4 py-3 rounded-md text-base font-medium transition-all duration-200 ${
+                  className={` px-4 py-3 rounded-md text-base  transition-all duration-200 ${
                     isActive
-                      ? "bg-sky-50 text-blue-600 shadow-sm"
-                      : "text-blue-100 hover:text-white hover:bg-white/10"
+                      ? "bg-indigo-50 text-indigo-600 shadow-sm"
+                      : "text-indigo-100 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {item.label}

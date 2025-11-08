@@ -142,7 +142,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
         <div className="mb-6">
           <label
             htmlFor="ConfirmPassword"
-            className="block text-sm font-medium mb-1"
+            className="block text-sm font-medium mb-1 text-black"
           >
             Confirm Password
           </label>

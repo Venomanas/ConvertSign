@@ -252,7 +252,7 @@ const DashboardContent = (): JSX.Element => {
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           Your Dashboard
         </h2>
-        <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+        <p className="mt-2  text-green-600 dark:text-green-400">
           Welcome back, {currentUser.email}!
         </p>
       </div>
@@ -269,7 +269,7 @@ const DashboardContent = (): JSX.Element => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search files..."
-              className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 text-sm bg-gray-50 dark:bg-slate-100 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
+              className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 bg-gray-50 dark:bg-slate-100 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -281,7 +281,7 @@ const DashboardContent = (): JSX.Element => {
               id="sort-by"
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortBy)}
-              className="block w-full rounded-md border-gray-300 dark:border-slate-600 py-2 pl-3 pr-8 text-sm bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+              className="block w-full rounded-md border-gray-300 dark:border-slate-600 py-2 pl-3 pr-8  bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="dateAdded">Date</option>
               <option value="name">Name</option>
@@ -313,10 +313,10 @@ const DashboardContent = (): JSX.Element => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTab)}
-                className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
+                className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 transition-colors duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                    : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 hover:border-gray-300 dark:hover:text-slate-200 dark:hover:border-slate-500"
+                    : "border-transparent text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:border-gray-400 dark:hover:text-slate-100 dark:hover:border-slate-200"
                 }`}
               >
                 {tab.icon &&

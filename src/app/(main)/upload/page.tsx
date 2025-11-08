@@ -143,7 +143,7 @@ const FileUploader: React.FC = () => {
             }`}
           />
           <p className="mb-2 text-black text-center">
-            <span className="font-semibold text-indigo-500">
+            <span className=" text-indigo-500">
               {" "}
               Drag and drop{" "}
             </span>

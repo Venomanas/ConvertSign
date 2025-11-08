@@ -294,7 +294,7 @@ const SignatureCanvas: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Canvas Area */}
         <div className="md:col-span-2 bg-white p-4 rounded-lg shadow-md">
-          <div className="bg-gray-100 border-2 border-gray-300 rounded-lg">
+          <div className="bg-gray-100 border-2 border-slate-400 ">
             <canvas
               ref={canvasRef}
               className="w-full h-64 md:h-80 touch-none cursor-crosshair "
@@ -311,14 +311,14 @@ const SignatureCanvas: React.FC = () => {
           {/* Success Message */}
           <div
             id="success-message"
-            className="mt-2 p-2 bg-green-50 text-green-700 text-sm rounded-md hidden"
+            className="mt-2 p-2 bg-green-50 text-green-700 rounded-md hidden"
           >
             Signature saved successfully!
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mt-2 p-2 bg-red-50 text-red-700 text-sm rounded-md">
+            <div className="mt-2 p-2 bg-red-50 text-red-700 rounded-md">
               {error}
             </div>
           )}
@@ -344,7 +344,7 @@ const SignatureCanvas: React.FC = () => {
           <div className="mt-4 flex flex-wrap gap-4">
             <button
               onClick={clearCanvas}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors flex-1 sm:flex-none "
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-800 rounded-lg transition-colors flex-1 sm:flex-none "
             >
               Clear
             </button>
@@ -397,7 +397,7 @@ const SignatureCanvas: React.FC = () => {
 
           {/* Size Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Pen Size:
             </label>
             <div className="flex items-center gap-2">
@@ -410,14 +410,14 @@ const SignatureCanvas: React.FC = () => {
                 onChange={handleSizeChange}
                 className="w-full"
               />
-              <span className="text-sm text-black">{penSize}</span>
+              <span className="text-black">{penSize}</span>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {availableSizes.map((size: SizeOption) => (
                 <button
                   key={size.value}
                   onClick={() => setPenSize(size.value)}
-                  className={`px-2 py-1 text-sm rounded ${
+                  className={`px-2 py-1 rounded ${
                     penSize === size.value
                       ? "bg-indigo-400 text-white"
                       : "bg-indigo-100 text-black"
@@ -431,7 +431,7 @@ const SignatureCanvas: React.FC = () => {
           </div>
 
           {/* Instructions */}
-          <div className="mt-6 text-sm text-black bg-indigo-50 rounded-2xl object-contain pt-2 pb-2">
+          <div className="mt-6 text-black bg-indigo-50 rounded-2xl object-contain pt-2 pb-2">
             <Image
               src={"paint.svg"}
               alt="Upload Files"

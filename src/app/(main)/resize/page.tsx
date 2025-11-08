@@ -3,8 +3,26 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useFileContext } from "@/context/FileContext";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+// import Image from "next/image";
 import { FileObject } from "@/utils/authUtils";
+
+// Aspect ratio presets
+const ASPECT_RATIOS = [
+  { label: "Original", value: null },
+  { label: "16:9 (Landscape)", value: 16 / 9 },
+  { label: "9:16 (Portrait)", value: 9 / 16 },
+  { label: "4:3", value: 4 / 3 },
+  { label: "1:1 (Square)", value: 1 },
+  { label: "21:9 (Ultrawide)", value: 21 / 9 },
+];
+
+// Size presets based on file size
+const SIZE_PRESETS = [
+  { label: "Small (< 100 KB)", maxWidth: 800, quality: 0.7 },
+  { label: "Medium (< 300 KB)", maxWidth: 1200, quality: 0.8 },
+  { label: "Large (< 500 KB)", maxWidth: 1600, quality: 0.85 },
+  { label: "Original Quality", maxWidth: null, quality: 0.95 },
+];
 
 const ResizePage: React.FC = () => {
   const router = useRouter();
@@ -20,6 +38,11 @@ const ResizePage: React.FC = () => {
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [customFileName, setCustomFileName] = useState<string>("");
+  const [selectedPresetRatio, setSelectedPresetRatio] = useState<number | null>(
+    null
+  );
+  const [selectedSizePreset, setSelectedSizePreset] = useState<number>(3);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -43,6 +66,10 @@ const ResizePage: React.FC = () => {
       imageRef.current = image;
       setPreview(image.src);
       setIsLoading(false);
+
+      // Set default file name (without extension)
+      const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
+      setCustomFileName(`${nameWithoutExt}_resized`);
     };
 
     image.onerror = () => {
@@ -86,11 +113,12 @@ const ResizePage: React.FC = () => {
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(imageRef.current, 0, 0, width, height);
 
-      setPreview(canvas.toDataURL("image/png", 0.95));
+      const preset = SIZE_PRESETS[selectedSizePreset];
+      setPreview(canvas.toDataURL("image/png", preset.quality));
     } catch (err) {
       console.error("Preview error:", err);
     }
-  }, [width, height, isLoading]);
+  }, [width, height, isLoading, selectedSizePreset]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -106,6 +134,7 @@ const ResizePage: React.FC = () => {
     if (maintainAspectRatio && aspectRatio > 0) {
       setHeight(Math.round(newWidth / aspectRatio));
     }
+    setSelectedPresetRatio(null); // Clear preset when manually changing
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,29 +143,77 @@ const ResizePage: React.FC = () => {
     if (maintainAspectRatio && aspectRatio > 0) {
       setWidth(Math.round(newHeight * aspectRatio));
     }
+    setSelectedPresetRatio(null); // Clear preset when manually changing
+  };
+
+  const handleAspectRatioPreset = (ratio: number | null) => {
+    setSelectedPresetRatio(ratio);
+
+    if (ratio === null) {
+      // Reset to original
+      setWidth(originalWidth);
+      setHeight(originalHeight);
+      setAspectRatio(originalWidth / originalHeight);
+    } else {
+      // Apply preset ratio
+      setAspectRatio(ratio);
+      const newHeight = Math.round(width / ratio);
+      setHeight(newHeight);
+      setMaintainAspectRatio(true);
+    }
+  };
+
+  const handleSizePreset = (presetIndex: number) => {
+    setSelectedSizePreset(presetIndex);
+    const preset = SIZE_PRESETS[presetIndex];
+
+    if (preset.maxWidth && originalWidth > preset.maxWidth) {
+      const newWidth = preset.maxWidth;
+      setWidth(newWidth);
+      if (maintainAspectRatio && aspectRatio > 0) {
+        setHeight(Math.round(newWidth / aspectRatio));
+      }
+    }
   };
 
   const handleReset = () => {
     setWidth(originalWidth);
     setHeight(originalHeight);
+    setAspectRatio(originalWidth / originalHeight);
+    setSelectedPresetRatio(null);
+    setSelectedSizePreset(3);
+    setMaintainAspectRatio(true);
   };
 
   const handleSave = async () => {
     if (!canvasRef.current || !selectedFile) return;
 
+    if (!customFileName.trim()) {
+      setError("Please enter a file name");
+      return;
+    }
+
     setIsProcessing(true);
     setError("");
 
     try {
-      const resizedBase64 = canvasRef.current.toDataURL("image/png", 0.95);
+      const preset = SIZE_PRESETS[selectedSizePreset];
+      const resizedBase64 = canvasRef.current.toDataURL(
+        "image/png",
+        preset.quality
+      );
+
+      // Clean filename and add extension
+      const cleanFileName = customFileName.trim().replace(/\.png$/i, "");
+      const finalFileName = `${cleanFileName}.png`;
 
       // Create proper FileObject with all required properties
       const resizedFile: FileObject = {
         id: `resized_${Date.now()}`,
-        name: `resized_${selectedFile.name}`,
+        name: finalFileName,
         type: "image/png",
         size: Math.round((resizedBase64.length * 3) / 4),
-        url: resizedBase64, // Use base64 as URL for preview
+        url: resizedBase64,
         base64: resizedBase64,
         dateAdded: new Date().toISOString(),
         processed: true,
@@ -144,6 +221,7 @@ const ResizePage: React.FC = () => {
 
       addFile(resizedFile);
       setSelectedFile(null);
+      setCustomFileName("");
       alert("Image resized and saved to dashboard!");
     } catch (err) {
       setError("Failed to save resized image");
@@ -152,6 +230,10 @@ const ResizePage: React.FC = () => {
       setIsProcessing(false);
     }
   };
+
+  const estimatedSize = preview
+    ? Math.round((preview.length * 3) / 4 / 1024)
+    : 0;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -185,14 +267,14 @@ const ResizePage: React.FC = () => {
                   onClick={() => setSelectedFile(file)}
                   className={`p-2 sm:p-3 rounded-md cursor-pointer transition-colors ${
                     selectedFile?.id === file.id
-                      ? "bg-indigo-50 border-2 border-indigo-300"
+                      ? "bg-indigo-50 border-2 border-indigo-700"
                       : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                   }`}
                 >
-                  <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                  <p className=" sm:text-sm font-medium text-gray-900 truncate">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className=" text-gray-400">
                     {(file.size / 1024).toFixed(1)} KB
                   </p>
                 </div>
@@ -209,7 +291,7 @@ const ResizePage: React.FC = () => {
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                     Preview
                   </h3>
-                  <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
+                  <div className=" rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
                     {isLoading ? (
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mx-auto"></div>
@@ -218,7 +300,8 @@ const ResizePage: React.FC = () => {
                         </p>
                       </div>
                     ) : preview ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={preview}
                         alt="Preview"
                         className="max-w-full max-h-[300px] sm:max-h-[400px] object-contain"
@@ -238,14 +321,14 @@ const ResizePage: React.FC = () => {
                   </h3>
 
                   {error && (
-                    <div className="mb-4 p-2 sm:p-3 bg-red-50 text-red-700 rounded-md text-xs sm:text-sm break-words">
+                    <div className="mb-4 p-2 sm:p-3 bg-red-50 text-red-700 rounded-md  sm:text-sm break-words">
                       {error}
                     </div>
                   )}
 
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      <label className="block sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         Width (px)
                       </label>
                       <input
@@ -258,7 +341,7 @@ const ResizePage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      <label className="block sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         Height (px)
                       </label>
                       <input
@@ -272,7 +355,7 @@ const ResizePage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -280,37 +363,111 @@ const ResizePage: React.FC = () => {
                         onChange={e => setMaintainAspectRatio(e.target.checked)}
                         className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                       />
-                      <span className="text-xs sm:text-sm text-gray-700">
+                      <span className=" sm:text-sm text-gray-700">
                         Maintain aspect ratio
                       </span>
                     </label>
                     <button
                       onClick={handleReset}
-                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      className=" sm:text-sm text-indigo-600 hover:text-green-400 font-medium"
                     >
                       Reset to original
                     </button>
                   </div>
 
-                  <div className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 p-2 sm:p-3 bg-gray-50 rounded-md space-y-1">
+                  {/* Aspect Ratio Presets */}
+                  <div className="mb-4">
+                    <label className="block  sm:text-sm font-medium text-gray-700 mb-2">
+                      Aspect Ratio Presets
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {ASPECT_RATIOS.map((preset, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleAspectRatioPreset(preset.value)}
+                          className={`px-3 py-2  sm:text-sm rounded-md border transition-colors ${
+                            selectedPresetRatio === preset.value
+                              ? "bg-indigo-50 border-indigo-500 text-indigo-700"
+                              : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Size Presets */}
+                  <div className="mb-4">
+                    <label className="block text-2xl sm:text-sm font-medium text-gray-700 mb-2">
+                      File Size Presets
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {SIZE_PRESETS.map((preset, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSizePreset(index)}
+                          className={`px-3 py-2  sm:text-sm rounded-md border transition-colors ${
+                            selectedSizePreset === index
+                              ? "bg-indigo-50 border-indigo-500 text-indigo-700"
+                              : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* File Name Input */}
+                  <div className="mb-4">
+                    <label className="block  sm:text-sm font-medium text-gray-700 mb-2">
+                      File Name
+                    </label>
+                    <input
+                      type="text"
+                      value={customFileName}
+                      onChange={e => setCustomFileName(e.target.value)}
+                      placeholder="Enter file name"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                    />
+                    <p className=" text-gray-500 mt-1">
+                      File will be saved as: {customFileName || "untitled"}.png
+                    </p>
+                  </div>
+
+                  <div className=" sm:text-sm text-gray-600 mb-4 sm:mb-6 p-2 sm:p-3 bg-gray-50 rounded-md space-y-1">
                     <p>
-                      Original: {originalWidth} × {originalHeight} px
+                      Original: {originalWidth} × {originalHeight} px (
+                      {(selectedFile.size / 1024).toFixed(1)} KB)
                     </p>
                     <p>
-                      New: {width} × {height} px
+                      New: {width} × {height} px (~{estimatedSize} KB)
+                    </p>
+                    <p className="text-indigo-600 font-medium">
+                      Current Ratio: {(width / height).toFixed(2)}:1
                     </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
-                      onClick={() => setSelectedFile(null)}
-                      className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setCustomFileName("");
+                        setError("");
+                      }}
+                      className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm border border-gray-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
-                      disabled={isProcessing || width <= 0 || height <= 0}
+                      disabled={
+                        isProcessing ||
+                        width <= 0 ||
+                        height <= 0 ||
+                        !customFileName.trim()
+                      }
                       className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                     >
                       {isProcessing ? "Saving..." : "Save Resized Image"}
@@ -320,13 +477,21 @@ const ResizePage: React.FC = () => {
               </>
             ) : (
               <div className="bg-white p-8 sm:p-12 rounded-lg shadow-md text-center">
-                <Image
-                  src="choose2.svg"
-                  alt="Select image"
-                  width={100}
-                  height={100}
-                  className="mx-auto mb-4 opacity-50"
-                />
+                <div className="w-24 h-24 mx-auto mb-4 opacity-50 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-12 h-12 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
                 <p className="text-sm text-gray-600 px-4">
                   Select an image from the list to start resizing
                 </p>

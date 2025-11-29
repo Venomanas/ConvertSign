@@ -20,7 +20,9 @@ export interface UserActivity {
   details: Record<string, unknown>;
   timestamp?: string;
 }
+
 // authUtils.ts or types.ts
+
 export interface FileObject {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ export interface FileObject {
   isSignature?: boolean;
   convertedFormat?: string;
   dateProcessed?: string;
+  blob?: Blob; // ✅ for persistence in IndexedDB
 }
 
 /* note !!!

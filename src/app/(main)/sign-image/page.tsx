@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useFileContext } from "@/context/FileContext";
 import { FileObject } from "@/utils/authUtils";
@@ -40,8 +46,8 @@ const SignImagePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  // Draw canvas function - no useCallback needed
-  const drawCanvas = () => {
+  // Draw canvas function - wrapped in useCallback to prevent infinite re-renders
+  const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const baseImg = baseImageRef.current;
 
@@ -85,10 +91,10 @@ const SignImagePage: React.FC = () => {
       ctx.drawImage(sigImg, x, y, sigWidth, sigHeight);
       ctx.globalAlpha = 1;
     }
-  };
+  }, [posX, posY, scale, selectedSignatureId]);
 
   // Debounced redraw using RAF
-  const scheduleRedraw = () => {
+  const scheduleRedraw = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
@@ -96,7 +102,7 @@ const SignImagePage: React.FC = () => {
       drawCanvas();
       animationFrameRef.current = null;
     });
-  };
+  }, [drawCanvas]);
 
   // Load base image
   useEffect(() => {
@@ -106,6 +112,7 @@ const SignImagePage: React.FC = () => {
     setError("");
 
     const baseImg = new Image();
+    baseImg.crossOrigin = "anonymous"; // Add crossOrigin for better CORS handling
 
     baseImg.onload = () => {
       baseImageRef.current = baseImg;
@@ -120,13 +127,19 @@ const SignImagePage: React.FC = () => {
 
     // Use base64 if available, otherwise URL
     const imageSrc = baseImageFile.base64 || baseImageFile.url;
+    if (!imageSrc) {
+      setError("Image source not found.");
+      setLoadingImages(false);
+      return;
+    }
+
     baseImg.src = imageSrc;
 
     return () => {
       baseImg.onload = null;
       baseImg.onerror = null;
     };
-  }, [baseImageFile]);
+  }, [baseImageFile, scheduleRedraw]);
 
   // Load signature image when selection changes
   useEffect(() => {
@@ -137,13 +150,18 @@ const SignImagePage: React.FC = () => {
     }
 
     const sigFile = signatures.find(s => s.id === selectedSignatureId);
-    if (!sigFile) return;
+    if (!sigFile) {
+      setError("Selected signature not found.");
+      return;
+    }
 
     const sigImg = new Image();
+    sigImg.crossOrigin = "anonymous"; // Add crossOrigin for better CORS handling
 
     sigImg.onload = () => {
       signatureImageRef.current = sigImg;
       scheduleRedraw();
+      setError(""); // Clear any previous errors
     };
 
     sigImg.onerror = () => {
@@ -152,18 +170,23 @@ const SignImagePage: React.FC = () => {
 
     // Use base64 if available, otherwise URL
     const imageSrc = sigFile.base64 || sigFile.url;
+    if (!imageSrc) {
+      setError("Signature image source not found.");
+      return;
+    }
+
     sigImg.src = imageSrc;
 
     return () => {
       sigImg.onload = null;
       sigImg.onerror = null;
     };
-  }, [selectedSignatureId, signatures]);
+  }, [scheduleRedraw, selectedSignatureId, signatures]);
 
   // Redraw when position/scale changes
   useEffect(() => {
     scheduleRedraw();
-  }, [posX, posY, scale]);
+  }, [posX, posY, scale, scheduleRedraw]);
 
   // Cleanup RAF on unmount
   useEffect(() => {
@@ -176,6 +199,7 @@ const SignImagePage: React.FC = () => {
 
   const handleSignatureChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSignatureId(e.target.value);
+    setError(""); // Clear errors when changing signature
   };
 
   const handleSaveSigned = async () => {
@@ -186,11 +210,32 @@ const SignImagePage: React.FC = () => {
       return;
     }
 
+    // Check if signature image is loaded
+    if (!signatureImageRef.current || !signatureImageRef.current.complete) {
+      setError("Signature image is still loading. Please wait.");
+      return;
+    }
+
     try {
       setIsSaving(true);
       setError("");
 
-      const dataUrl = canvasRef.current.toDataURL("image/png");
+      const canvas = canvasRef.current;
+
+      // Create a temporary canvas to ensure we get the final composed image
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext("2d");
+
+      if (!tempCtx) {
+        throw new Error("Could not create canvas context");
+      }
+
+      // Redraw everything on the temporary canvas
+      tempCtx.drawImage(canvas, 0, 0);
+
+      const dataUrl = tempCanvas.toDataURL("image/png");
       const res = await fetch(dataUrl);
       const blob = await res.blob();
 
@@ -212,7 +257,7 @@ const SignImagePage: React.FC = () => {
       showToast("Signed image saved to dashboard", "success");
       router.push("/dashboard");
     } catch (err) {
-      console.error(err);
+      console.error("Error saving signed image:", err);
       setError("Failed to save signed image.");
       showToast("Failed to save signed image", "error");
     } finally {
@@ -220,10 +265,17 @@ const SignImagePage: React.FC = () => {
     }
   };
 
+  // Auto-select first signature if available and none selected
+  useEffect(() => {
+    if (signatures.length > 0 && !selectedSignatureId && !loadingImages) {
+      setSelectedSignatureId(signatures[0].id);
+    }
+  }, [signatures, selectedSignatureId, loadingImages]);
+
   if (!fileId || !baseImageFile) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <p className="text-center text-gray-600">
+        <p className="text-center text-gray-600 dark:text-slate-400">
           Image not found. Try opening from the dashboard.
         </p>
       </div>
@@ -235,7 +287,7 @@ const SignImagePage: React.FC = () => {
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-slate-200 mb-2 text-center">
         Sign Image
       </h1>
-      <p className="text-center text-sm text-gray-500 mb-6">
+      <p className="text-center text-sm text-gray-500 dark:text-slate-400 mb-6">
         Add your saved digital signature on top of this image.
       </p>
 
@@ -259,14 +311,16 @@ const SignImagePage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <canvas
-                ref={canvasRef}
-                className="max-w-full h-auto"
-                style={{ display: "block" }}
-              />
+              <div className="flex items-center justify-center w-full h-full">
+                <canvas
+                  ref={canvasRef}
+                  className="max-w-full max-h-full object-contain"
+                  style={{ display: "block" }}
+                />
+              </div>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-3">
             Base file: <span className="font-medium">{baseImageFile.name}</span>
           </p>
         </motion.div>
@@ -288,11 +342,11 @@ const SignImagePage: React.FC = () => {
               Choose Signature
             </label>
             {signatures.length === 0 ? (
-              <div className="text-xs sm:text-sm text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
                 No signatures found. Create one on the{" "}
                 <button
                   onClick={() => router.push("/signature")}
-                  className="text-indigo-600 underline"
+                  className="text-indigo-600 dark:text-indigo-400 underline"
                 >
                   Signature page
                 </button>{" "}
@@ -302,7 +356,7 @@ const SignImagePage: React.FC = () => {
               <select
                 value={selectedSignatureId}
                 onChange={handleSignatureChange}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-md focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               >
                 <option value="">Select a signature</option>
                 {signatures.map(sig => (
@@ -324,8 +378,8 @@ const SignImagePage: React.FC = () => {
               min={0}
               max={100}
               value={posX}
-              onChange={e => setPosX(parseInt(e.target.value) || 0)}
-              className="w-full"
+              onChange={e => setPosX(Number(e.target.value) || 0)}
+              className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
               {posX}%
@@ -341,8 +395,8 @@ const SignImagePage: React.FC = () => {
               min={0}
               max={100}
               value={posY}
-              onChange={e => setPosY(parseInt(e.target.value) || 0)}
-              className="w-full"
+              onChange={e => setPosY(Number(e.target.value) || 0)}
+              className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
               {posY}%
@@ -359,8 +413,8 @@ const SignImagePage: React.FC = () => {
               min={20}
               max={150}
               value={scale}
-              onChange={e => setScale(parseInt(e.target.value) || 60)}
-              className="w-full"
+              onChange={e => setScale(Number(e.target.value) || 60)}
+              className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
               {scale}%
@@ -368,7 +422,7 @@ const SignImagePage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-2 text-xs sm:text-sm bg-red-50 text-red-700 rounded-md">
+            <div className="p-3 text-xs sm:text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
               {error}
             </div>
           )}
@@ -376,25 +430,25 @@ const SignImagePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <button
               onClick={() => router.push("/dashboard")}
-              className="w-full sm:flex-1 py-2 px-4 text-sm border border-gray-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 font-medium"
+              className="w-full sm:flex-1 py-2 px-4 text-sm border border-gray-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
             >
               Cancel
             </button>
             <motion.button
               onClick={handleSaveSigned}
-              disabled={isSaving || !selectedSignatureId}
+              disabled={isSaving || !selectedSignatureId || loadingImages}
               whileHover={
-                isSaving || !selectedSignatureId
+                isSaving || !selectedSignatureId || loadingImages
                   ? undefined
                   : { scale: 1.02, y: -1 }
               }
               whileTap={
-                isSaving || !selectedSignatureId
+                isSaving || !selectedSignatureId || loadingImages
                   ? undefined
                   : { scale: 0.97, y: 0 }
               }
               transition={{ duration: 0.12, ease: "easeOut" }}
-              className="w-full sm:flex-1 py-2 px-4 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+              className="w-full sm:flex-1 py-2 px-4 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium transition-colors"
             >
               {isSaving ? "Saving..." : "Save Signed Image"}
             </motion.button>

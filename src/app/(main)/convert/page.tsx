@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { motion, AnimatePresence } from "framer-motion";
+import PageTransition from "@/components/PageTransition";
+import AnimatedButton from "@/components/Animatedbutton";
 
 //define type for target formats
 export type FormatOption =
@@ -244,6 +246,7 @@ const FileConverter: React.FC = () => {
   };
 
   return (
+    <PageTransition>
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
         Convert Files
@@ -448,7 +451,7 @@ const FileConverter: React.FC = () => {
                     )}
                   </AnimatePresence>
 
-                  <button
+                  <AnimatedButton
                     onClick={handleConvert}
                     disabled={!targetFormat || isConverting}
                     className={`w-full py-2 px-4 text-sm sm:text-base rounded-md transition-colors ${
@@ -458,7 +461,7 @@ const FileConverter: React.FC = () => {
                     }`}
                   >
                     {isConverting ? "Converting..." : "Convert  File"}
-                  </button>
+                  </AnimatedButton>
                 </>
               ) : (
                 <div className="text-center py-8 sm:py-10">
@@ -502,6 +505,7 @@ const FileConverter: React.FC = () => {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 };
 

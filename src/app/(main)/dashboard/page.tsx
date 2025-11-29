@@ -15,6 +15,7 @@ import {
   ArrowUpTrayIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
+import { motion, AnimatePresence } from "framer-motion";
 import { useFileContext } from "@/context/FileContext";
 import { useAuth } from "@/context/AuthContext";
 import { downloadFile } from "@/utils/fileUtils";
@@ -109,7 +110,7 @@ const getFileIcon = (file: FileObject): JSX.Element => {
 };
 
 const DashboardContent = (): JSX.Element => {
-  const { files, removeFile } = useFileContext();
+  const { files, removeFile, isLoading } = useFileContext();
   const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortBy>("dateAdded");
@@ -335,13 +336,29 @@ const DashboardContent = (): JSX.Element => {
       </div>
 
       {/* File List */}
-      {files.length === 0 ? (
+      {isLoading ? (
+        // 🔹 Skeleton while IndexedDB is loading
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white dark:bg-slate-700 rounded-xl shadow-md p-4 animate-pulse flex flex-col"
+            >
+              <div className="h-40 bg-gray-200 dark:bg-slate-600 rounded-md mb-4" />
+              <div className="h-4 bg-gray-200 dark:bg-slate-600 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2 mb-2" />
+              <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/3" />
+            </div>
+          ))}
+        </div>
+      ) : files.length === 0 ? (
+        // 🔹 Your original "No files yet" empty state
         <div className="text-center py-12 px-4 bg-white dark:bg-slate-100 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
           <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
           <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-black">
             No files yet
           </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-gray-500 ">
             Upload files to get started.
           </p>
           <Image
@@ -360,6 +377,7 @@ const DashboardContent = (): JSX.Element => {
           </button>
         </div>
       ) : filteredFiles.length === 0 ? (
+        // 🔹 "No files found" for search/filter, when you DO have some files
         <div className="text-center py-12 px-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
           <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
           <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
@@ -372,73 +390,87 @@ const DashboardContent = (): JSX.Element => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredFiles.map(file => (
-              <div
-                key={file.id}
-                className="bg-white dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
-              >
-                {/* File Preview */}
-                <div className="h-48 bg-gray-100 dark:bg-slate-300 flex items-center justify-center relative p-2">
-                  {file.type.startsWith("image/") && file.base64 ? (
-                    <Base64Image
-                      src={file.base64}
-                      alt={file.name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-4xl">{getFileIcon(file)}</div>
-                  )}
-                  {/* Badges */}
-                  <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
-                    {file.processed && (
-                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-                        Processed
-                      </span>
+            <AnimatePresence>
+              {filteredFiles.map((file, index) => (
+                <motion.div
+                  key={file.id}
+                  layout
+                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.98 }}
+                  transition={{
+                    duration: 0.25,
+                    delay: index * 0.03,
+                    ease: "easeOut",
+                  }}
+                  whileHover={{ scale: 1.02, translateY: -2 }}
+                  className="bg-white dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
+                >
+                  {/* File Preview */}
+                  <div className="h-48 bg-gray-100 dark:bg-slate-300 flex items-center justify-center relative p-2">
+                    {file.type.startsWith("image/") &&
+                    (file.base64 || file.url) ? (
+                      <Base64Image
+                        src={file.base64 || file.url}
+                        alt={file.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-4xl">{getFileIcon(file)}</div>
                     )}
-                    {file.isSignature && (
-                      <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">
-                        Signature
-                      </span>
-                    )}
+                    {/* Badges */}
+                    <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
+                      {file.processed && (
+                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                          Processed
+                        </span>
+                      )}
+                      {file.isSignature && (
+                        <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">
+                          Signature
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* File Info */}
-                <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col flex-grow">
-                  <p
-                    className=" text-gray-900 dark:text-white truncate"
-                    title={file.name}
-                  >
-                    {file.name}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                    {formatBytes(file.size)} •{" "}
-                    {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
-                    Added: {new Date(file.dateAdded).toLocaleDateString()}
-                  </p>
+                  {/* File Info */}
+                  <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col flex-grow">
+                    <p
+                      className="text-gray-900 dark:text-white truncate"
+                      title={file.name}
+                    >
+                      {file.name}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                      {formatBytes(file.size)} •{" "}
+                      {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
+                      Added: {new Date(file.dateAdded).toLocaleDateString()}
+                    </p>
 
-                  {/* Actions */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
-                    <button
-                      onClick={() => handleDownload(file)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm  transition-colors duration-200 hover:bg-indigo-700"
-                    >
-                      <ArrowDownTrayIcon className="w-4 h-4" />
-                      Download
-                    </button>
-                    <button
-                      onClick={() => handleDelete(file.id)}
-                      className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200 "
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
+                    {/* Actions */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
+                      <button
+                        onClick={() => handleDownload(file)}
+                        className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm transition-colors duration-200 hover:bg-indigo-700"
+                      >
+                        <ArrowDownTrayIcon className="w-4 h-4" />
+                        Download
+                      </button>
+                      <button
+                        onClick={() => handleDelete(file.id)}
+                        className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
+
           <p className="mt-8 text-sm text-gray-500 dark:text-slate-400 text-center">
             Showing {filteredFiles.length} of {files.length} files.
           </p>

@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
+// If needed, uncomment this in some setups:
+// import { Buffer } from "buffer";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const targetFormat = formData.get("targetFormat") as string;
+    const file = formData.get("file") as File | null;
+    const targetFormat = formData.get("targetFormat") as string | null;
 
     console.log("Conversion request:", {
       fileName: file?.name,
@@ -50,14 +52,29 @@ export async function POST(request: NextRequest) {
       convertedBuffer = buffer;
     }
 
-    const base64 = convertedBuffer.toString("base64");
     const newFileName = getConvertedFileName(file.name, targetFormat);
+    const mimeType = getMimeTypeForFormat(targetFormat);
 
-    console.log("Conversion successful:", newFileName);
-
-    return NextResponse.json({
-      convertedFile: base64,
+    console.log("Conversion successful:", {
       fileName: newFileName,
+      mimeType,
+      size: convertedBuffer.length,
+    });
+
+    // 👇 IMPORTANT FIX:
+    // Convert Node Buffer -> Uint8Array (which is valid BodyInit)
+    const body = new Uint8Array(convertedBuffer);
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": mimeType,
+        "Content-Disposition": `attachment; filename="${newFileName.replace(
+          /["\\]/g,
+          "_"
+        )}"; filename*=UTF-8''${encodeURIComponent(newFileName)}`,
+        "Content-Length": body.byteLength.toString(),
+      },
     });
   } catch (error) {
     console.error("Conversion error:", error);
@@ -70,7 +87,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper functions
+// Helper functions below stay the same
+
 function getSupportedConversions(fileType: string): string[] {
   if (fileType.startsWith("image/")) {
     return ["jpg", "png", "webp", "gif", "bmp", "pdf"];
@@ -91,18 +109,30 @@ function getSupportedConversions(fileType: string): string[] {
   return [];
 }
 
+function getMimeTypeForFormat(format: string): string {
+  const map: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    pdf: "application/pdf",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    txt: "text/plain",
+    csv: "text/csv",
+  };
+
+  return map[format.toLowerCase()] || "application/octet-stream";
+}
+
 async function convertImage(
   buffer: Buffer,
   originalType: string,
   targetFormat: string
 ): Promise<Buffer> {
-  // For now, return original buffer as placeholder
-  // In production, install and use Sharp:
-  // import sharp from 'sharp';
-  // const image = sharp(buffer);
-  // return await image.toFormat(targetFormat).toBuffer();
-
   console.log(`Image conversion: ${originalType} -> ${targetFormat}`);
+  // TODO: use sharp() here later
   return buffer;
 }
 
@@ -111,7 +141,6 @@ async function convertToPdf(
   originalType: string,
   originalName: string
 ): Promise<Buffer> {
-  // Simple PDF creation for testing
   const pdfContent = `
     PDF Conversion
     -------------
@@ -122,7 +151,6 @@ async function convertToPdf(
     This is a placeholder PDF content.
     In production, use proper PDF generation libraries.
   `;
-
   return Buffer.from(pdfContent);
 }
 
@@ -130,11 +158,9 @@ async function convertToText(
   buffer: Buffer,
   originalType: string
 ): Promise<Buffer> {
-  // Simple text extraction
   let textContent = `Converted from: ${originalType}\n\n`;
 
   if (originalType.startsWith("text/")) {
-    // If it's already text, return it
     textContent += buffer.toString("utf8");
   } else {
     textContent += "This file has been converted to text format.\n";

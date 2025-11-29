@@ -5,6 +5,8 @@ import { useFileContext } from "@/context/FileContext";
 import { useRouter } from "next/navigation";
 // import Image from "next/image";
 import { FileObject } from "@/utils/authUtils";
+import { useToast } from "@/context/ToastContext";
+import { motion } from "framer-motion"; // 👈 only motion is enough here
 
 // Aspect ratio presets
 const ASPECT_RATIOS = [
@@ -26,7 +28,7 @@ const SIZE_PRESETS = [
 
 const ResizePage: React.FC = () => {
   const router = useRouter();
-  const { files, addFile } = useFileContext();
+  const { files, addFile, isLoading: filesLoading } = useFileContext();
   const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
   const [width, setWidth] = useState<number>(0);
   const [height, setHeight] = useState<number>(0);
@@ -34,7 +36,7 @@ const ResizePage: React.FC = () => {
   const [originalHeight, setOriginalHeight] = useState<number>(0);
   const [maintainAspectRatio, setMaintainAspectRatio] = useState<boolean>(true);
   const [aspectRatio, setAspectRatio] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // image preview loading
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -45,6 +47,8 @@ const ResizePage: React.FC = () => {
   const [selectedSizePreset, setSelectedSizePreset] = useState<number>(3);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+
+  const { showToast } = useToast();
 
   // Get image files only
   const imageFiles = files.filter(f => f.type.startsWith("image/"));
@@ -67,7 +71,6 @@ const ResizePage: React.FC = () => {
       setPreview(image.src);
       setIsLoading(false);
 
-      // Set default file name (without extension)
       const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
       setCustomFileName(`${nameWithoutExt}_resized`);
     };
@@ -79,7 +82,6 @@ const ResizePage: React.FC = () => {
 
     image.crossOrigin = "anonymous";
 
-    // Use base64 if available, otherwise use URL
     if (selectedFile.base64) {
       image.src = selectedFile.base64;
     } else {
@@ -134,7 +136,7 @@ const ResizePage: React.FC = () => {
     if (maintainAspectRatio && aspectRatio > 0) {
       setHeight(Math.round(newWidth / aspectRatio));
     }
-    setSelectedPresetRatio(null); // Clear preset when manually changing
+    setSelectedPresetRatio(null);
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,19 +145,17 @@ const ResizePage: React.FC = () => {
     if (maintainAspectRatio && aspectRatio > 0) {
       setWidth(Math.round(newHeight * aspectRatio));
     }
-    setSelectedPresetRatio(null); // Clear preset when manually changing
+    setSelectedPresetRatio(null);
   };
 
   const handleAspectRatioPreset = (ratio: number | null) => {
     setSelectedPresetRatio(ratio);
 
     if (ratio === null) {
-      // Reset to original
       setWidth(originalWidth);
       setHeight(originalHeight);
       setAspectRatio(originalWidth / originalHeight);
     } else {
-      // Apply preset ratio
       setAspectRatio(ratio);
       const newHeight = Math.round(width / ratio);
       setHeight(newHeight);
@@ -203,11 +203,9 @@ const ResizePage: React.FC = () => {
         preset.quality
       );
 
-      // Clean filename and add extension
       const cleanFileName = customFileName.trim().replace(/\.png$/i, "");
       const finalFileName = `${cleanFileName}.png`;
 
-      // Create proper FileObject with all required properties
       const resizedFile: FileObject = {
         id: `resized_${Date.now()}`,
         name: finalFileName,
@@ -222,7 +220,7 @@ const ResizePage: React.FC = () => {
       addFile(resizedFile);
       setSelectedFile(null);
       setCustomFileName("");
-      alert("Image resized and saved to dashboard!");
+      showToast("Image resized and saved to dashboard ", "success");
     } catch (err) {
       setError("Failed to save resized image");
       console.error(err);
@@ -241,7 +239,40 @@ const ResizePage: React.FC = () => {
         Image Resizer
       </h1>
 
-      {imageFiles.length === 0 ? (
+      {filesLoading ? (
+        // 🔹 Skeleton while files load from IndexedDB
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
+            <div className="h-5 w-32 bg-gray-200 rounded mb-4 animate-pulse" />
+            <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="p-2 sm:p-3 rounded-md bg-gray-100 animate-pulse"
+                >
+                  <div className="h-3 bg-gray-300 rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <div className="h-5 w-32 bg-gray-200 rounded mb-4 animate-pulse" />
+              <div className="rounded-lg p-4 min-h-[200px] sm:min-h-[300px] bg-gray-100 animate-pulse" />
+            </div>
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+              <div className="h-5 w-40 bg-gray-200 rounded mb-4 animate-pulse" />
+              <div className="space-y-3">
+                <div className="h-10 bg-gray-100 rounded-md animate-pulse" />
+                <div className="h-10 bg-gray-100 rounded-md animate-pulse" />
+                <div className="h-10 bg-gray-100 rounded-md animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : imageFiles.length === 0 ? (
         <div className="text-center py-8 sm:py-12 bg-white rounded-lg shadow-sm">
           <p className="text-gray-600 mb-4 px-4">
             No images available to resize.
@@ -254,30 +285,41 @@ const ResizePage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
           {/* File Selection */}
           <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
               Select Image
             </h3>
             <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto">
-              {imageFiles.map(file => (
-                <div
+              {imageFiles.map((file, index) => (
+                <motion.button
                   key={file.id}
+                  type="button"
                   onClick={() => setSelectedFile(file)}
-                  className={`p-2 sm:p-3 rounded-md cursor-pointer transition-colors ${
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.02 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full text-left p-2 sm:p-3 rounded-md cursor-pointer transition-colors ${
                     selectedFile?.id === file.id
                       ? "bg-indigo-50 border-2 border-indigo-700"
                       : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                   }`}
                 >
-                  <p className=" sm:text-sm font-medium text-gray-900 truncate">
+                  <p className="sm:text-sm font-medium text-gray-900 truncate">
                     {file.name}
                   </p>
-                  <p className=" text-gray-400">
+                  <p className="text-gray-400">
                     {(file.size / 1024).toFixed(1)} KB
                   </p>
-                </div>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -291,7 +333,7 @@ const ResizePage: React.FC = () => {
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                     Preview
                   </h3>
-                  <div className=" rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
+                  <div className="rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
                     {isLoading ? (
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mx-auto"></div>
@@ -300,10 +342,13 @@ const ResizePage: React.FC = () => {
                         </p>
                       </div>
                     ) : preview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <motion.img
+                        key={preview}
                         src={preview}
                         alt="Preview"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
                         className="max-w-full max-h-[300px] sm:max-h-[400px] object-contain"
                       />
                     ) : (
@@ -363,13 +408,13 @@ const ResizePage: React.FC = () => {
                         onChange={e => setMaintainAspectRatio(e.target.checked)}
                         className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                       />
-                      <span className=" sm:text-sm text-gray-700">
+                      <span className="sm:text-sm text-gray-700">
                         Maintain aspect ratio
                       </span>
                     </label>
                     <button
                       onClick={handleReset}
-                      className=" sm:text-sm text-indigo-600 hover:text-green-400 font-medium"
+                      className="sm:text-sm text-indigo-600 hover:text-green-400 font-medium"
                     >
                       Reset to original
                     </button>
@@ -377,7 +422,7 @@ const ResizePage: React.FC = () => {
 
                   {/* Aspect Ratio Presets */}
                   <div className="mb-4">
-                    <label className="block  sm:text-sm font-medium text-gray-700 mb-2">
+                    <label className="block sm:text-sm font-medium text-gray-700 mb-2">
                       Aspect Ratio Presets
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -385,7 +430,7 @@ const ResizePage: React.FC = () => {
                         <button
                           key={index}
                           onClick={() => handleAspectRatioPreset(preset.value)}
-                          className={`px-3 py-2  sm:text-sm rounded-md border transition-colors ${
+                          className={`px-3 py-2 sm:text-sm rounded-md border transition-colors ${
                             selectedPresetRatio === preset.value
                               ? "bg-indigo-50 border-indigo-500 text-indigo-700"
                               : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -407,7 +452,7 @@ const ResizePage: React.FC = () => {
                         <button
                           key={index}
                           onClick={() => handleSizePreset(index)}
-                          className={`px-3 py-2  sm:text-sm rounded-md border transition-colors ${
+                          className={`px-3 py-2 sm:text-sm rounded-md border transition-colors ${
                             selectedSizePreset === index
                               ? "bg-indigo-50 border-indigo-500 text-indigo-700"
                               : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -421,7 +466,7 @@ const ResizePage: React.FC = () => {
 
                   {/* File Name Input */}
                   <div className="mb-4">
-                    <label className="block  sm:text-sm font-medium text-gray-700 mb-2">
+                    <label className="block sm:text-sm font-medium text-gray-700 mb-2">
                       File Name
                     </label>
                     <input
@@ -431,12 +476,12 @@ const ResizePage: React.FC = () => {
                       placeholder="Enter file name"
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 text-gray-900"
                     />
-                    <p className=" text-gray-500 mt-1">
+                    <p className="text-gray-500 mt-1">
                       File will be saved as: {customFileName || "untitled"}.png
                     </p>
                   </div>
 
-                  <div className=" sm:text-sm text-gray-600 mb-4 sm:mb-6 p-2 sm:p-3 bg-gray-50 rounded-md space-y-1">
+                  <div className="sm:text-sm text-gray-600 mb-4 sm:mb-6 p-2 sm:p-3 bg-gray-50 rounded-md space-y-1">
                     <p>
                       Original: {originalWidth} × {originalHeight} px (
                       {(selectedFile.size / 1024).toFixed(1)} KB)
@@ -498,7 +543,7 @@ const ResizePage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       <canvas ref={canvasRef} className="hidden" />

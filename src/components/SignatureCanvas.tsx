@@ -1,12 +1,14 @@
 // src/components/SignatureCanvas.tsx
 "use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import { useFileContext } from "@/context/FileContext";
 import Image from "next/image";
 import { FileObject } from "@/utils/authUtils";
 import DownloadSignature from "@/components/DownloadSignature";
+import { useToast } from "@/context/ToastContext";
+import { motion } from "framer-motion";
 
-// Type definitions
 interface ColorOption {
   label: string;
   value: string;
@@ -17,23 +19,25 @@ interface SizeOption {
   value: number;
 }
 
-interface TouchEvent {
-  touches: TouchList;
-}
-
-interface MouseEvent extends React.MouseEvent {
-  clientX: number;
-  clientY: number;
-}
+type Point = { x: number; y: number };
+type Stroke = { points: Point[]; color: string; width: number };
 
 const SignatureCanvas: React.FC = () => {
-  const { addFile } = useFileContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [penColor, setPenColor] = useState<string>("#000000");
   const [penSize, setPenSize] = useState<number>(2);
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [signatureName, setSignatureName] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [hasDrawn, setHasDrawn] = useState(false);
+
+  const { addFile } = useFileContext();
+  const { showToast } = useToast();
 
   // Available colors for the signature pen
   const availableColors: ColorOption[] = [
@@ -51,131 +55,158 @@ const SignatureCanvas: React.FC = () => {
     { label: "Extra Large", value: 4 },
   ];
 
+  // Resize canvas to container and redraw strokes
   useEffect(() => {
-    // Initialize canvas
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container) return;
 
-    const context = canvas.getContext("2d");
-    if (!context) return;
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
 
-    // Set canvas size to match its display size
-    const resizeCanvas = (): void => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      canvas.width = rect.width * dpr;
+      canvas.height = (rect.height || 300) * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height || 300}px`;
 
-      // Set canvas background to white
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-      // Set line styles
-      context.lineJoin = "round";
-      context.lineCap = "round";
-      context.strokeStyle = penColor;
-      context.lineWidth = penSize;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      redrawStrokes(ctx, strokes);
     };
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, [strokes]);
 
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-    };
-  }, [penColor, penSize]);
+  const redrawStrokes = (
+    ctx: CanvasRenderingContext2D,
+    allStrokes: Stroke[]
+  ) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  useEffect(() => {
-    // Update pen color and size when changed
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    // transparent background → good for overlaying on docs
+    allStrokes.forEach(stroke => {
+      if (stroke.points.length < 2) return;
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
 
-    const context = canvas.getContext("2d");
-    if (!context) return;
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (let i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      }
+      ctx.stroke();
+    });
+  };
 
-    context.strokeStyle = penColor;
-    context.lineWidth = penSize * 2; // Multiply by 2 for better visibility
-  }, [penColor, penSize]);
-
-  const getEventPosition = (
-    e: MouseEvent | TouchEvent
-  ): { x: number; y: number } => {
+  const getCanvasPos = (clientX: number, clientY: number): Point => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-
     const rect = canvas.getBoundingClientRect();
-    let clientX: number;
-    let clientY: number;
-
-    if ("touches" in e) {
-      // Touch event
-      clientX = e.touches[0]?.clientX || 0;
-      clientY = e.touches[0]?.clientY || 0;
-    } else {
-      // Mouse event
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
     return {
       x: clientX - rect.left,
       y: clientY - rect.top,
     };
   };
 
-  const startDrawing = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-  ): void => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    const { x, y } = getEventPosition(e as MouseEvent | TouchEvent);
-
-    context.beginPath();
-    context.moveTo(x, y);
+  // Mouse events
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>): void => {
+    e.preventDefault();
+    const point = getCanvasPos(e.clientX, e.clientY);
+    const newStroke: Stroke = {
+      points: [point],
+      color: penColor,
+      width: penSize * 2,
+    };
+    setCurrentStroke(newStroke);
     setIsDrawing(true);
+    setHasDrawn(true);
+    setError("");
   };
 
-  const draw = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
-  ): void => {
-    if (!isDrawing) return;
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>): void => {
+    if (!isDrawing || !currentStroke) return;
+
+    const point = getCanvasPos(e.clientX, e.clientY);
+    const updatedStroke: Stroke = {
+      ...currentStroke,
+      points: [...currentStroke.points, point],
+    };
+    setCurrentStroke(updatedStroke);
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
 
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    const { x, y } = getEventPosition(e as MouseEvent | TouchEvent);
-
-    context.lineTo(x, y);
-    context.stroke();
+    redrawStrokes(ctx, [...strokes, updatedStroke]);
   };
 
-  const stopDrawing = (): void => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    context.closePath();
+  const endDrawing = (): void => {
+    if (currentStroke && currentStroke.points.length > 0) {
+      setStrokes(prev => [...prev, currentStroke]);
+    }
+    setCurrentStroke(null);
     setIsDrawing(false);
+  };
+
+  // Touch events
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>): void => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const point = getCanvasPos(touch.clientX, touch.clientY);
+    const newStroke: Stroke = {
+      points: [point],
+      color: penColor,
+      width: penSize * 2,
+    };
+    setCurrentStroke(newStroke);
+    setIsDrawing(true);
+    setHasDrawn(true);
+    setError("");
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>): void => {
+    e.preventDefault();
+    if (!isDrawing || !currentStroke) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const point = getCanvasPos(touch.clientX, touch.clientY);
+    const updatedStroke: Stroke = {
+      ...currentStroke,
+      points: [...currentStroke.points, point],
+    };
+    setCurrentStroke(updatedStroke);
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    redrawStrokes(ctx, [...strokes, updatedStroke]);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>): void => {
+    e.preventDefault();
+    endDrawing();
   };
 
   const clearCanvas = (): void => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    // Fill with white background
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setStrokes([]);
+    setCurrentStroke(null);
+    setHasDrawn(false);
+    setError("");
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -187,103 +218,77 @@ const SignatureCanvas: React.FC = () => {
   };
 
   const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setPenSize(parseInt(e.target.value));
+    setPenSize(parseInt(e.target.value) || 2);
   };
 
-  const saveSignature = (): void => {
+  const handleUndo = (): void => {
+    setStrokes(prev => {
+      const updated = [...prev];
+      updated.pop();
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (canvas && ctx) {
+        redrawStrokes(ctx, updated);
+      }
+      if (updated.length === 0) {
+        setHasDrawn(false);
+      }
+      return updated;
+    });
+  };
+
+  const saveSignature = async (): Promise<void> => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const context = canvas.getContext("2d");
-    if (!context) return;
 
-    const imageData = context.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    ).data;
-    let isEmpty = true;
-
-    for (let i = 3; i < imageData.length; i += 4) {
-      if (
-        imageData[i - 3] !== 255 ||
-        imageData[i - 2] !== 255 ||
-        imageData[i - 1] !== 255
-      ) {
-        isEmpty = false;
-        break;
-      }
-    }
-
-    if (isEmpty) {
+    if (!hasDrawn) {
       setError("Please draw a signature before saving.");
+      showToast("Draw a signature first", "info");
       return;
     }
 
     if (!signatureName.trim()) {
       setError("Please give your signature a name.");
+      showToast("Please give your signature a name", "error");
       return;
     }
 
     try {
-      const base64Image = canvas.toDataURL("image/png");
+      setIsSaving(true);
+      const dataUrl = canvas.toDataURL("image/png"); // transparent PNG
 
-      // Fix: Create proper FileObject
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+
+      const cleanName = signatureName.trim().replace(/\.png$/i, "");
+      const finalName = `${cleanName}.png`;
+
       const fileData: FileObject = {
-        id: `${Date.now()}`,
-        name: `${signatureName.trim()}.png`,
+        id: `signature_${Date.now()}`,
+        name: finalName,
         type: "image/png",
-        size: Math.round(base64Image.length * 0.75),
-        url: base64Image,
-        base64: base64Image,
+        size: blob.size,
+        url: dataUrl,
+        base64: dataUrl,
         dateAdded: new Date().toISOString(),
         isSignature: true,
         processed: true,
+        blob, // for IndexedDB persistence
       };
 
       addFile(fileData);
       clearCanvas();
       setSignatureName("");
       setError("");
-
-      const successMessage = document.getElementById("success-message");
-      if (successMessage) {
-        successMessage.classList.remove("hidden");
-        setTimeout(() => {
-          successMessage.classList.add("hidden");
-        }, 3000);
-      }
+      showToast("Signature saved to dashboard", "success");
     } catch (err) {
       console.error("Error saving signature:", err);
       setError("Failed to save signature. Please try again.");
+      showToast("Failed to save signature", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    const resizeCanvas = () => {
-      // We store the current canvas content, resize, and then restore it
-      const currentDrawing = canvas.toDataURL();
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight > 250 ? 250 : parent.clientHeight; // Set a max-height or use parent's
-
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        const img = new window.Image();
-        img.src = currentDrawing;
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0);
-        };
-      }
-    };
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -294,26 +299,28 @@ const SignatureCanvas: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Canvas Area */}
         <div className="md:col-span-2 bg-white p-4 rounded-lg shadow-md">
-          <div className="bg-gray-100 border-2 border-slate-400 ">
-            <canvas
-              ref={canvasRef}
-              className="w-full h-64 md:h-80 touch-none cursor-crosshair "
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              onTouchStart={startDrawing}
-              onTouchMove={draw}
-              onTouchEnd={stopDrawing}
-            />
-          </div>
-
-          {/* Success Message */}
           <div
-            id="success-message"
-            className="mt-2 p-2 bg-green-50 text-green-700 rounded-md hidden"
+            ref={containerRef}
+            className="bg-gray-100 border-2 border-slate-400"
           >
-            Signature saved successfully!
+            <motion.div
+              ref={containerRef}
+              className="bg-gray-100 border-2 border-slate-400"
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="w-full h-64 md:h-80 touch-none cursor-crosshair"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={endDrawing}
+                onMouseLeave={endDrawing}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              />
+            </motion.div>
           </div>
 
           {/* Error Message */}
@@ -323,10 +330,10 @@ const SignatureCanvas: React.FC = () => {
             </div>
           )}
 
-          <div className="mb-4">
+          <div className="mb-4 mt-4">
             <label
               htmlFor="signatureName"
-              className="block text-lg font-semibold mb-4 text-black  "
+              className="block text-lg font-semibold mb-4 text-black"
             >
               Name Your Signature
             </label>
@@ -335,8 +342,7 @@ const SignatureCanvas: React.FC = () => {
               value={signatureName}
               onChange={handleNameChange}
               placeholder="e.g. My Signature"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800
-              font-stretch-condensed"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
             />
           </div>
 
@@ -344,15 +350,27 @@ const SignatureCanvas: React.FC = () => {
           <div className="mt-4 flex flex-wrap gap-4">
             <button
               onClick={clearCanvas}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-800 rounded-lg transition-colors flex-1 sm:flex-none "
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-800 rounded-lg transition-colors flex-1 sm:flex-none"
             >
               Clear
             </button>
             <button
-              onClick={saveSignature}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors flex-1 sm:flex-none "
+              onClick={handleUndo}
+              disabled={strokes.length === 0}
+              className={`px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none ${
+                strokes.length === 0
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white border border-gray-300 text-slate-800 hover:bg-gray-100"
+              }`}
             >
-              Save Signature
+              Undo
+            </button>
+            <button
+              onClick={saveSignature}
+              disabled={isSaving}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors flex-1 sm:flex-none"
+            >
+              {isSaving ? "Saving..." : "Save Signature"}
             </button>
           </div>
 
@@ -431,14 +449,14 @@ const SignatureCanvas: React.FC = () => {
           </div>
 
           {/* Instructions */}
-          <div className="mt-6 text-black bg-indigo-50 rounded-2xl object-contain pt-2 pb-2">
+          <div className="mt-6 text-black bg-indigo-50 rounded-2xl pt-2 pb-2">
             <Image
-              src={"paint.svg"}
+              src="/paint.svg"
               alt="Upload Files"
               width={100}
               height={100}
-              className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110 "
-            />
+              className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
+            />{" "}
             <div className="mt-1 px-2 py-1 mb-1">
               <ul className="list-disc pl-5 space-y-1">
                 <li>Use your mouse or finger to draw</li>

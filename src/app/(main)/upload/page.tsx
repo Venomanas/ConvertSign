@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { useFileContext } from "@/context/FileContext";
-import { fileToBase64 } from "@/utils/fileUtils";
+import { useToast } from "@/context/ToastContext";
 import { ArrowUpTrayIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ const FileUploader: React.FC = () => {
   const [uploadedCount, setUploadedCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
   const acceptedFileTypes = [
     "image/jpeg",
     "image/png",
@@ -61,9 +62,10 @@ const FileUploader: React.FC = () => {
     let successCount = 0;
     const errors: string[] = [];
 
+    //loop
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
-
+      //validations
       if (!acceptedFileTypes.includes(file.type)) {
         errors.push(`${file.name}: Unsupported file type`);
         continue;
@@ -75,7 +77,7 @@ const FileUploader: React.FC = () => {
       }
 
       try {
-        const base64 = await fileToBase64(file);
+        const objectUrl = URL.createObjectURL(file);
 
         // Fix: Add missing url property
         addFile({
@@ -83,11 +85,11 @@ const FileUploader: React.FC = () => {
           name: file.name,
           type: file.type,
           size: file.size,
-          url: base64, // Use base64 as temporary URL
-          base64: base64,
+          url: objectUrl,
           dateAdded: new Date().toISOString(),
           processed: false,
           isSignature: false,
+          blob: file, // ✅ store the original file as Blob for persistence
         });
 
         successCount++;
@@ -97,6 +99,17 @@ const FileUploader: React.FC = () => {
         errors.push(`${file.name}: Failed to process`);
       }
     }
+
+    if (successCount > 0) {
+      showToast(
+        `Uploaded ${successCount} file${successCount > 1 ? "s" : ""}`,
+        "success"
+      );
+    }
+    if (errors.length > 0) {
+      showToast("Some files failed to upload. Check details below.", "error");
+    }
+
 
     setIsUploading(false);
     if (errors.length > 0) {

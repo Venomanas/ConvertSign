@@ -5,6 +5,7 @@ import { useToast } from "@/context/ToastContext";
 import { ArrowUpTrayIcon, CheckCircleIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import AnimatedButton from "@/components/Animatedbutton";
 
 const FileUploader: React.FC = () => {
   const router = useRouter();
@@ -167,13 +168,13 @@ const FileUploader: React.FC = () => {
           </p>
         </div>
 
-        <button
+        <AnimatedButton
           onClick={handleButtonClick}
           disabled={isUploading}
           className="px-6 py-3 bg-slate-900 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
         >
           {isUploading ? "Uploading..." : "Click to upload"}
-        </button>
+        </AnimatedButton>
 
         <input
           ref={inputRef}

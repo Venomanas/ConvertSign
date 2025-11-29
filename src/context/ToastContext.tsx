@@ -26,7 +26,7 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 export const useToast = (): ToastContextValue => {
   const ctx = useContext(ToastContext);
   if (!ctx) {
-    throw new Error("UseToast must be used within a ToastProvider ");
+    throw new Error("UseToast must be used within a ToastProvider");
   }
   return ctx;
 };
@@ -54,9 +54,13 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-
       {/*Toast UI*/}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+      <div
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {toast.isOpen && (
           <div
             className={`px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-3 transition-all duration-300
@@ -73,7 +77,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
             <span>{toast.message}</span>
           </div>
         )}
-      </div>
+      </div>{" "}
     </ToastContext.Provider>
   );
 };

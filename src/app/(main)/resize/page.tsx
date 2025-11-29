@@ -342,7 +342,6 @@ const ResizePage: React.FC = () => {
                         </p>
                       </div>
                     ) : preview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <motion.img
                         key={preview}
                         src={preview}

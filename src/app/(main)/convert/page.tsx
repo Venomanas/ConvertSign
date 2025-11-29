@@ -289,18 +289,19 @@ const FileConverter: React.FC = () => {
             onClick={() => router.push("/upload")}
             className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base  transition-colors duration-200"
           >
-            Uplaod to Convert
+            Upload to Convert{" "}
           </button>
         </div>
       ) : (
         // 🔹 Normal 2-column layout
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8"
+          className="gap-4 sm:gap-6 lg:gap-8"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            {" "}
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
                 Select File to Convert
@@ -381,7 +382,6 @@ const FileConverter: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
                 Conversion Options
@@ -440,7 +440,7 @@ const FileConverter: React.FC = () => {
                         <p>Conversion successful! 🎉</p>
                         <button
                           onClick={() => handleDownload(convertedFile)}
-                          className="text-black bg-yellow-300 hover:bg-yellow-400 mt-1 p-4 bg-green- rounded-full border-spacing-0.5 border-black shadow-2xl border-b-1 cursor-pointer"
+                          className="text-black bg-yellow-300 hover:bg-yellow-400 mt-1 p-4 rounded-full border-spacing-0.5 border-black shadow-2xl border-b-1 cursor-pointer"
                         >
                           Download Converted File
                         </button>

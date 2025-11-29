@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": mimeType,
-        "Content-Disposition": `attachment; filename="${newFileName}"`,
+        "Content-Disposition": `attachment; filename="${newFileName.replace(
+          /["\\]/g,
+          "_"
+        )}"; filename*=UTF-8''${encodeURIComponent(newFileName)}`,
         "Content-Length": body.byteLength.toString(),
       },
     });

@@ -451,12 +451,12 @@ const SignatureCanvas: React.FC = () => {
           {/* Instructions */}
           <div className="mt-6 text-black bg-indigo-50 rounded-2xl pt-2 pb-2">
             <Image
-              src={"paint.svg"}
+              src="/paint.svg"
               alt="Upload Files"
               width={100}
               height={100}
               className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
-            />
+            />{" "}
             <div className="mt-1 px-2 py-1 mb-1">
               <ul className="list-disc pl-5 space-y-1">
                 <li>Use your mouse or finger to draw</li>

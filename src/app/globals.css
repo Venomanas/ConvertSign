@@ -118,5 +118,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    max-width: 100%;
+    overflow-x: hidden; /* prevent sideways scrolling from tiny overflow bugs */
+
   }
 }

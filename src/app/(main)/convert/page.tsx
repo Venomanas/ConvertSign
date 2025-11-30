@@ -247,7 +247,7 @@ const FileConverter: React.FC = () => {
 
   return (
     <PageTransition>
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className="min-h-screen  max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 ">
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
         Convert Files
       </h2>

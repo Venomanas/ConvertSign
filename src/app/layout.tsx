@@ -19,7 +19,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ConvertSign - Document Signing and Conversion",
   description: "Convert, Sign and manage your Digital documents with ease",
+ 
 };
+
+export const  viewport ={
+    width: "device-width",
+    initialScale: 1,
+  }
+
 
 export default function RootLayout({
   children,
@@ -28,13 +35,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <FileProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <ToastProvider>
+                <main className="min-h-screen">{children}</main>
+              </ToastProvider>
             </FileProvider>
           </AuthProvider>
         </ThemeProvider>

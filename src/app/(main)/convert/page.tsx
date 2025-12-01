@@ -476,7 +476,7 @@ const FileConverter: React.FC = () => {
                           : "bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white"
                       }`}
                     >
-                      {isConverting ? "Converting..." : "Convert  File"}
+                      {isConverting ? "Converting..." : "Convert File"}{" "}
                     </AnimatedButton>
                   </>
                 ) : (

@@ -22,6 +22,7 @@ import { downloadFile } from "@/utils/fileUtils";
 import { FileObject } from "@/utils/authUtils";
 import { useRouter } from "next/navigation";
 import PageTransition from "@/components/PageTransition";
+import Animatedbutton from "@/components/Animatedbutton";
 
 // Helper function to format bytes
 const formatBytes = (bytes: number, decimals: number = 2) => {
@@ -316,7 +317,7 @@ const DashboardContent = (): JSX.Element => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 transition-colors duration-200 whitespace-nowrap ${
+                  className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 transition-colors duration-200 whitespace-nowrap tracking-tight ${
                     activeTab === tab.id
                       ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                       : "border-transparent text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:border-gray-400 dark:hover:text-slate-100 dark:hover:border-slate-200"
@@ -370,13 +371,13 @@ const DashboardContent = (): JSX.Element => {
               height={150}
               className="mx-auto mb-10 mt-10 transition-transform duration-300 group-hover:scale-110"
             />
-            <button
+            <Animatedbutton
               onClick={() => router.push("/upload")}
               className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 transition-colors duration-200"
             >
               <ArrowUpTrayIcon className="w-4 h-4" />
               Upload Your First File
-            </button>
+            </Animatedbutton>
           </div>
         ) : filteredFiles.length === 0 ? (
           // 🔹 "No files found" for search/filter, when you DO have some files
@@ -453,18 +454,18 @@ const DashboardContent = (): JSX.Element => {
 
                       {/* Actions */}
                       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
-                        <button
+                        <Animatedbutton
                           onClick={() => handleDownload(file)}
                           className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm transition-colors duration-200 hover:bg-indigo-700"
                         >
                           <ArrowDownTrayIcon className="w-4 h-4" />
                           Download
-                        </button>
+                        </Animatedbutton>
 
                         {/* NEW: Sign button only for images */}
 
                         {file.type.startsWith("image/") && (
-                          <button
+                          <Animatedbutton
                             onClick={() =>
                               router.push(
                                 `/sign-image?fileId=${encodeURIComponent(
@@ -472,18 +473,18 @@ const DashboardContent = (): JSX.Element => {
                                 )}`
                               )
                             }
-                            className="px-3 py-2 rounded-md border border-inidgo-200 text-indigo-700 text-sm hover:bg-indigo-50 "
+                            className="px-3 py-2 rounded-md border border-inidgo-200 text-black text-sm hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black hover:dark:text-white dark:text-white"
                           >
                             Sign
-                          </button>
+                          </Animatedbutton>
                         )}
 
-                        <button
+                        <Animatedbutton
                           onClick={() => handleDelete(file.id)}
                           className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
                         >
                           <TrashIcon className="w-4 h-4" />
-                        </button>
+                        </Animatedbutton>
                       </div>
                     </div>
                   </motion.div>
@@ -499,7 +500,6 @@ const DashboardContent = (): JSX.Element => {
       </div>
     </PageTransition>
   );
-
 };
 
 export default function Dashboard(): JSX.Element {

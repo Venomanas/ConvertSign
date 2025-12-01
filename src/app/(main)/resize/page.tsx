@@ -280,12 +280,12 @@ const ResizePage: React.FC = () => {
             <p className="text-gray-600 mb-4 px-4">
               No images available to resize.
             </p>
-            <button
+            <AnimatedButton
               onClick={() => router.push("/upload")}
               className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base"
             >
               Upload Images
-            </button>
+            </AnimatedButton>
           </div>
         ) : (
           <motion.div
@@ -299,7 +299,8 @@ const ResizePage: React.FC = () => {
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                 Select Image
               </h3>
-              <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto">
+              <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {" "}
                 {imageFiles.map((file, index) => (
                   <motion.button
                     key={file.id}
@@ -345,12 +346,12 @@ const ResizePage: React.FC = () => {
                     </h3>
                     <div className="rounded-lg p-4 flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
                       {isLoading ? (
-                        <div className="text-center">
+                        <motion.div className="text-center">
                           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mx-auto"></div>
                           <p className="mt-4 text-gray-600 text-sm">
                             Loading image...
                           </p>
-                        </div>
+                        </motion.div>
                       ) : preview ? (
                         <motion.img
                           key={preview}
@@ -424,12 +425,12 @@ const ResizePage: React.FC = () => {
                           Maintain aspect ratio
                         </span>
                       </label>
-                      <button
+                      <AnimatedButton
                         onClick={handleReset}
-                        className="sm:text-sm text-indigo-600 hover:text-green-400 font-medium"
+                        className=" sm:flex-1 py-2 sm:py-3 px-4 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                       >
                         Reset to original
-                      </button>
+                      </AnimatedButton>
                     </div>
 
                     {/* Aspect Ratio Presets */}
@@ -439,7 +440,7 @@ const ResizePage: React.FC = () => {
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {ASPECT_RATIOS.map((preset, index) => (
-                          <button
+                          <AnimatedButton
                             key={index}
                             onClick={() =>
                               handleAspectRatioPreset(preset.value)
@@ -451,7 +452,7 @@ const ResizePage: React.FC = () => {
                             }`}
                           >
                             {preset.label}
-                          </button>
+                          </AnimatedButton>
                         ))}
                       </div>
                     </div>
@@ -463,7 +464,7 @@ const ResizePage: React.FC = () => {
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {SIZE_PRESETS.map((preset, index) => (
-                          <button
+                          <AnimatedButton
                             key={index}
                             onClick={() => handleSizePreset(index)}
                             className={`px-3 py-2 sm:text-sm rounded-md border transition-colors ${
@@ -473,7 +474,7 @@ const ResizePage: React.FC = () => {
                             }`}
                           >
                             {preset.label}
-                          </button>
+                          </AnimatedButton>
                         ))}
                       </div>
                     </div>
@@ -510,7 +511,7 @@ const ResizePage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                      <button
+                      <AnimatedButton
                         onClick={() => {
                           setSelectedFile(null);
                           setCustomFileName("");
@@ -519,7 +520,7 @@ const ResizePage: React.FC = () => {
                         className="w-full sm:flex-1 py-2 sm:py-3 px-4 text-sm border border-gray-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium"
                       >
                         Cancel
-                      </button>
+                      </AnimatedButton>
                       <AnimatedButton
                         onClick={handleSave}
                         disabled={
@@ -562,6 +563,31 @@ const ResizePage: React.FC = () => {
         )}
 
         <canvas ref={canvasRef} className="hidden" />
+
+        <div className="mt-6 sm:mt-8 ">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
+            How to use
+          </h3>
+          <div className="bg-white p-4 rounded-lg text-xs sm:text-sm text-gray-600 shadow-sm">
+            <div className="mt-1  rounded-lg p-6">
+              <ol className="space-y-3 space-x-1">
+                {[
+                  "Upload your files via upload button",
+                  "preview chnages according to   ",
+                  "rename resized file ",
+                  "Download or delete files anytime from your dashboard",
+                ].map((step, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                      {index + 1}
+                    </div>
+                    <p className="text-gray-700 pt-0.5">{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
       </div>
     </PageTransition>
   );

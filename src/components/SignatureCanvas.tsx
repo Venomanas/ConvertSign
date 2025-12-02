@@ -8,6 +8,7 @@ import { FileObject } from "@/utils/authUtils";
 import DownloadSignature from "@/components/DownloadSignature";
 import { useToast } from "@/context/ToastContext";
 import { motion } from "framer-motion";
+import Animatedbutton from "./Animatedbutton";
 
 interface ColorOption {
   label: string;
@@ -348,13 +349,13 @@ const SignatureCanvas: React.FC = () => {
 
           {/* Canvas Controls */}
           <div className="mt-4 flex flex-wrap gap-4">
-            <button
+            <Animatedbutton
               onClick={clearCanvas}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-800 rounded-lg transition-colors flex-1 sm:flex-none"
             >
               Clear
-            </button>
-            <button
+            </Animatedbutton>
+            <Animatedbutton
               onClick={handleUndo}
               disabled={strokes.length === 0}
               className={`px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none ${
@@ -364,14 +365,14 @@ const SignatureCanvas: React.FC = () => {
               }`}
             >
               Undo
-            </button>
-            <button
+            </Animatedbutton>
+            <Animatedbutton
               onClick={saveSignature}
               disabled={isSaving}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors flex-1 sm:flex-none"
             >
               {isSaving ? "Saving..." : "Save Signature"}
-            </button>
+            </Animatedbutton>
           </div>
 
           <DownloadSignature />
@@ -432,7 +433,7 @@ const SignatureCanvas: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {availableSizes.map((size: SizeOption) => (
-                <button
+                <Animatedbutton
                   key={size.value}
                   onClick={() => setPenSize(size.value)}
                   className={`px-2 py-1 rounded ${
@@ -443,7 +444,7 @@ const SignatureCanvas: React.FC = () => {
                   type="button"
                 >
                   {size.label}
-                </button>
+                </Animatedbutton>
               ))}
             </div>
           </div>
@@ -456,7 +457,7 @@ const SignatureCanvas: React.FC = () => {
               width={100}
               height={100}
               className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
-            />{" "}
+            />
             <div className="mt-1 px-2 py-1 mb-1">
               <ul className="list-disc pl-5 space-y-1">
                 <li>Use your mouse or finger to draw</li>

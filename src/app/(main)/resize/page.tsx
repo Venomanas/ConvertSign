@@ -299,7 +299,8 @@ const ResizePage: React.FC = () => {
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">
                 Select Image
               </h3>
-              <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overfloe-style:none] [scrollbar-width:none]">
+              <div className="space-y-2 max-h-60 sm:max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {" "}
                 {imageFiles.map((file, index) => (
                   <motion.button
                     key={file.id}

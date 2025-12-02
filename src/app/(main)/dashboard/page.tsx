@@ -292,7 +292,7 @@ const DashboardContent = (): JSX.Element => {
                 <option value="type">Type</option>
                 <option value="size">Size</option>
               </select>
-              <button
+              <Animatedbutton
                 onClick={() =>
                   setSortDirection(sortDirection === "asc" ? "desc" : "asc")
                 }
@@ -304,7 +304,7 @@ const DashboardContent = (): JSX.Element => {
                 ) : (
                   <ChevronDownIcon className="w-5 h-5 text-black dark:text-white" />
                 )}
-              </button>
+              </Animatedbutton>
             </div>
           </div>
         </div>
@@ -314,7 +314,7 @@ const DashboardContent = (): JSX.Element => {
           <div className="border-b border-gray-200 dark:border-slate-300">
             <nav className="-mb-px flex space-x-4 overflow-x-auto">
               {tabs.map(tab => (
-                <button
+                <Animatedbutton
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
                   className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 transition-colors duration-200 whitespace-nowrap tracking-tight ${
@@ -332,7 +332,7 @@ const DashboardContent = (): JSX.Element => {
                       }`,
                     })}
                   <span className="hidden sm:inline">{tab.label}</span>
-                </button>
+                </Animatedbutton>
               ))}
             </nav>
           </div>
@@ -481,7 +481,7 @@ const DashboardContent = (): JSX.Element => {
 
                         <Animatedbutton
                           onClick={() => handleDelete(file.id)}
-                          className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
+                          className="px-2 py-2  rounded-md border text-black text-sm hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black hover:dark:text-white dark:text-white"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </Animatedbutton>

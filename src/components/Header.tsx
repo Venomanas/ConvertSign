@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
 import ThemeToggleButton from "./ui/theme-toggle-button"; // Assuming this is the correct path
+import Animatedbutton from "./Animatedbutton";
 
 // Define the navigation items with paths
 const navItems = [
@@ -67,13 +68,13 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
           {/* Right side icons & Mobile Menu button */}
           <div className="flex items-center space-x-4">
             <ThemeToggleButton />
-            <button
+            <Animatedbutton
               onClick={onProfileClick}
               className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-indigo-600 hover:bg-indigo-200 transition-colors duration-200 shadow-sm"
               title="User Profile"
             >
               <span className="font-semibold text-base">{userInitial}</span>
-            </button>
+            </Animatedbutton>
 
             {/* Mobile Menu Button */}
             <button

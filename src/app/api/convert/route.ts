@@ -298,7 +298,12 @@ async function convertWordToPdfWithCloudConvert(
     }
 
     // 8️⃣ Download the converted file
-    const response = await fetch(fileUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    const response = await fetch(fileUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       throw new Error(
         `Failed to download converted file: ${response.status} ${response.statusText}`

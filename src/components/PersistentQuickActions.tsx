@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"; // Use 'next/navigation' for App Router
 import { useActionsStore } from "@/hooks/actionsState";
+import Animatedbutton from "./Animatedbutton";
 
 export const PersistentQuickActions = () => {
   // 1. Listens to the global state from your Zustand store
@@ -28,27 +29,27 @@ export const PersistentQuickActions = () => {
         </span>
 
         {/* Your buttons are here */}
-        <button
+        <Animatedbutton
           onClick={() => handleActionClick("/dashboard")}
           className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
         >
           Go to Dashboard
-        </button>
-        <button
+        </Animatedbutton>
+        <Animatedbutton
           onClick={() => handleActionClick("/convert")}
           className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
         >
           Convert Files
-        </button>
-        <button
+        </Animatedbutton>
+        <Animatedbutton
           onClick={() => handleActionClick("/resize")}
           className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
         >
           Resize Images
-        </button>
+        </Animatedbutton>
 
-        {/* A button to close the banner */}
-        <button
+        {/* A Animatedbutton to close the banner */}
+        <Animatedbutton
           onClick={dismissActions}
           className="text-gray-400 hover:text-gray-600 ml-2"
           aria-label="Dismiss"
@@ -67,7 +68,7 @@ export const PersistentQuickActions = () => {
               d="M6 18L18 6M6 6l12 12"
             />
           </svg>
-        </button>
+        </Animatedbutton>
       </div>
     </div>
   );

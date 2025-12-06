@@ -572,10 +572,10 @@ const ResizePage: React.FC = () => {
             <div className="mt-1  rounded-lg p-6">
               <ol className="space-y-3 space-x-1">
                 {[
-                  "Upload your files via upload button",
-                  "preview chnages according to   ",
-                  "rename resized file ",
-                  "Download or delete files anytime from your dashboard",
+                  "Upload your image",
+                  "preview chnages ",
+                  "rename resized image",
+                  "Download or Delete images anytime from your dashboard",
                 ].map((step, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">

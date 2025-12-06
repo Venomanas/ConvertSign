@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
 import ThemeToggleButton from "./ui/theme-toggle-button"; // Assuming this is the correct path
 import Animatedbutton from "./Animatedbutton";
+import PageTransition from "./PageTransition";
 
 // Define the navigation items with paths
 const navItems = [
@@ -34,110 +35,112 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
     "U";
 
   return (
-    <header className="bg-slate-900 dark:bg-gray-950/70 dark:border-b dark:border-gray-800/50 shadow-lg text-white backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-3">
-          {/* Logo */}
-          <Link
-            href="/dashboard"
-            className="text-xl sm:text-2xl font-bold text-sky-50 hover:text-white transition-colors"
-          >
-            ConvertSign 🌀
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-2">
-            {navItems.map(item => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-md  transition-all duration-200 ${
-                    isActive
-                      ? "bg-sky-50 text-indigo-600 shadow-sm"
-                      : "text-blue-100 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right side icons & Mobile Menu button */}
-          <div className="flex items-center space-x-4">
-            <ThemeToggleButton />
-            <Animatedbutton
-              onClick={onProfileClick}
-              className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-indigo-600 hover:bg-indigo-200 transition-colors duration-200 shadow-sm"
-              title="User Profile"
+    <PageTransition>
+      <header className="bg-slate-900 dark:bg-gray-950/70 dark:border-b dark:border-gray-800/50 shadow-lg text-white backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3">
+            {/* Logo */}
+            <Link
+              href="/dashboard"
+              className="text-xl sm:text-2xl font-bold text-sky-50 hover:text-white transition-colors"
             >
-              <span className="font-semibold text-base">{userInitial}</span>
-            </Animatedbutton>
+              ConvertSign 
+            </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={toggleMobileMenu}
-              className="lg:hidden p-2 rounded-md text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Toggle menu"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-2">
+              {navItems.map(item => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`px-4 py-2 rounded-md  transition-all duration-200 ${
+                      isActive
+                        ? "bg-sky-50 text-indigo-600 shadow-sm"
+                        : "text-blue-100 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Right side icons & Mobile Menu button */}
+            <div className="flex items-center space-x-4">
+              <ThemeToggleButton />
+              <Animatedbutton
+                onClick={onProfileClick}
+                className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-indigo-600 hover:bg-indigo-200 transition-colors duration-200 shadow-sm"
+                title="User Profile"
               >
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-            </button>
+                <span className="font-semibold text-base">{userInitial}</span>
+              </Animatedbutton>
+
+              {/* Mobile Menu Button */}
+              <Animatedbutton
+                onClick={toggleMobileMenu}
+                className="lg:hidden p-2 rounded-md text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Toggle menu"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="4" x2="20" y1="12" y2="12" />
+                  <line x1="4" x2="20" y1="6" y2="6" />
+                  <line x1="4" x2="20" y1="18" y2="18" />
+                </svg>
+              </Animatedbutton>
+            </div>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          <div
+            className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+              isMobileMenuOpen ? "max-h-96 pb-4" : "max-h-0"
+            }`}
+          >
+            <nav className="flex flex-col space-y-2 bg-white/5 rounded-lg p-2">
+              {navItems.map(item => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={` px-4 py-3 rounded-md text-base  transition-all duration-200 ${
+                      isActive
+                        ? "bg-indigo-50 text-indigo-600 shadow-sm"
+                        : "text-indigo-100 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <Animatedbutton
+                onClick={() => {
+                  onProfileClick();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-left px-4 py-3 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10"
+              >
+                Profile
+              </Animatedbutton>
+            </nav>
           </div>
         </div>
-
-        {/* Mobile Menu Dropdown */}
-        <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? "max-h-96 pb-4" : "max-h-0"
-          }`}
-        >
-          <nav className="flex flex-col space-y-2 bg-white/5 rounded-lg p-2">
-            {navItems.map(item => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={` px-4 py-3 rounded-md text-base  transition-all duration-200 ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600 shadow-sm"
-                      : "text-indigo-100 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            <button
-              onClick={() => {
-                onProfileClick();
-                setIsMobileMenuOpen(false);
-              }}
-              className="text-left px-4 py-3 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10"
-            >
-              Profile
-            </button>
-          </nav>
-        </div>
-      </div>
-    </header>
+      </header>
+    </PageTransition>
   );
 };
 

@@ -9,6 +9,7 @@ import { useToast } from "@/context/ToastContext";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
 import AnimatedButton from "@/components/Animatedbutton";
+import Animatedbutton from "@/components/Animatedbutton";
 
 //define type for target formats
 export type FormatOption =
@@ -456,12 +457,12 @@ const FileConverter: React.FC = () => {
                                 </p>
                               </div>
                             </div>
-                            <button
+                            <Animatedbutton
                               onClick={() => handleDownload(convertedFile)}
                               className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-400 to-indigo-600 hover:from-indigo-500 hover:to-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-indigo-500 dark:border-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-indigo-400"
                             >
                               Download Converted File
-                            </button>
+                            </Animatedbutton>
                           </div>
                         </motion.div>
                       )}

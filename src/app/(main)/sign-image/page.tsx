@@ -12,6 +12,7 @@ import { useFileContext } from "@/context/FileContext";
 import { FileObject } from "@/utils/authUtils";
 import { useToast } from "@/context/ToastContext";
 import { motion } from "framer-motion";
+import Animatedbutton from "@/components/Animatedbutton";
 
 const MAX_CANVAS_WIDTH = 900;
 
@@ -344,12 +345,12 @@ const SignImagePage: React.FC = () => {
             {signatures.length === 0 ? (
               <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
                 No signatures found. Create one on the{" "}
-                <button
+                <Animatedbutton
                   onClick={() => router.push("/signature")}
                   className="text-indigo-600 dark:text-indigo-400 underline"
                 >
                   Signature page
-                </button>{" "}
+                </Animatedbutton>{" "}
                 first.
               </div>
             ) : (
@@ -428,12 +429,12 @@ const SignImagePage: React.FC = () => {
           )}
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-            <button
+            <Animatedbutton
               onClick={() => router.push("/dashboard")}
               className="w-full sm:flex-1 py-2 px-4 text-sm border border-gray-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
             >
               Cancel
-            </button>
+            </Animatedbutton>
             <motion.button
               onClick={handleSaveSigned}
               disabled={isSaving || !selectedSignatureId || loadingImages}

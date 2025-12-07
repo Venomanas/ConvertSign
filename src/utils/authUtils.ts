@@ -36,6 +36,8 @@ export interface FileObject {
   convertedFormat?: string;
   dateProcessed?: string;
   blob?: Blob; // ✅ for persistence in IndexedDB
+  previewOfId?: string;
+  isPreview?: boolean;
 }
 
 /* note !!!

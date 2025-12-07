@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import CloudConvert from "cloudconvert";
-
+import sharp from "sharp";
+import { PDFDocument } from "pdf-lib";
 export const runtime = "nodejs"; // use Node runtime, not edge
 
 const cloudConvertApiKey = process.env.CLOUDCONVERT_API_KEY;
@@ -79,6 +80,18 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+    // 🔹 2. Excel → CSV / TXT
+    else if (
+      isExcelMime(file.type) &&
+      (targetFormat === "csv" || targetFormat === "txt")
+    ) {
+      const { outputBuffer, mime } = await convertExcelToCsvOrText(
+        buffer,
+        targetFormat as "csv" | "txt"
+      );
+      convertedBuffer = outputBuffer;
+      outMime = mime;
+    }
 
     // 🔹 2. Images (placeholder – still just echo for now)
     else if (file.type.startsWith("image/") && targetFormat !== "pdf") {
@@ -147,7 +160,7 @@ function getSupportedConversions(fileType: string): string[] {
     // Word → pdf / txt
     return ["pdf", "txt"];
   } else if (fileType.includes("excel") || fileType.includes("spreadsheet")) {
-    return ["pdf", "csv"];
+    return ["pdf", "csv", "txt"];
   } else if (
     fileType.includes("powerpoint") ||
     fileType.includes("presentation")
@@ -156,6 +169,7 @@ function getSupportedConversions(fileType: string): string[] {
   } else if (fileType === "text/plain") {
     return ["pdf"];
   }
+
   return [];
 }
 
@@ -164,6 +178,15 @@ function isWordMime(mime: string): boolean {
     mime === "application/msword" ||
     mime ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  );
+}
+
+function isExcelMime(mime: string): boolean {
+  return (
+    mime === "application/vnd.ms-excel" ||
+    mime ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    mime.includes("spreadsheet")
   );
 }
 
@@ -210,6 +233,61 @@ interface CloudConvertJob {
   }>;
   message?: string;
 }
+
+/**
+ * 🔹 Excel (XLS / XLSX) → CSV or clean text
+ */
+async function convertExcelToCsvOrText(
+  buffer: Buffer,
+  target: "csv" | "txt"
+): Promise<{ outputBuffer: Buffer; mime: string }> {
+  // Dynamic import so it plays nice with ESM / Next
+  const xlsxModule = await import("xlsx");
+  const XLSX = (xlsxModule as any).default || xlsxModule;
+
+  // Read workbook from buffer
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const sheetNames: string[] = workbook.SheetNames;
+
+  if (!sheetNames.length) {
+    throw new Error("No sheets found in Excel file.");
+  }
+
+  const firstSheetName = sheetNames[0];
+  const firstSheet = workbook.Sheets[firstSheetName];
+
+  if (!firstSheet) {
+    throw new Error("First sheet is empty or invalid.");
+  }
+
+  if (target === "csv") {
+    const csv = XLSX.utils.sheet_to_csv(firstSheet);
+    return {
+      outputBuffer: Buffer.from(csv, "utf8"),
+      mime: "text/csv; charset=utf-8",
+    };
+  } else {
+    // target === "txt": create a clean, tab-separated text representation
+    const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, {
+      header: 1, // "array-of-arrays" mode
+      raw: false,
+    }) as any;
+
+    const lines = rows.map(row =>
+      row.map(cell => (cell == null ? "" : String(cell))).join("\t")
+    );
+
+    const text = `Converted from Excel sheet: ${firstSheetName}\n\n${lines.join(
+      "\n"
+    )}`;
+
+    return {
+      outputBuffer: Buffer.from(text, "utf8"),
+      mime: "text/plain; charset=utf-8",
+    };
+  }
+}
+
 /**
  * 🔹 Real DOC/DOCX → PDF using CloudConvert
  */
@@ -321,17 +399,75 @@ async function convertWordToPdfWithCloudConvert(
     );
   }
 }
+
 /**
  * Image conversion placeholder – plug Sharp here later if you want.
  */
+// async function convertImage(
+//   buffer: Buffer,
+//   originalType: string,
+//   targetFormat: string
+// ): Promise<Buffer> {
+//   console.log(`Image conversion: ${originalType} -> ${targetFormat}`);
+//   // TODO: integrate sharp() for real image conversion if needed
+//   return buffer;
+// }
+
+/**
+ * 🔥 Real image conversion using Sharp
+ *  - image -> image (jpg/png/webp/gif/bmp)
+ *  - image -> pdf (single-page PDF with the image embedded)
+ */
+
 async function convertImage(
   buffer: Buffer,
   originalType: string,
   targetFormat: string
 ): Promise<Buffer> {
   console.log(`Image conversion: ${originalType} -> ${targetFormat}`);
-  // TODO: integrate sharp() for real image conversion if needed
-  return buffer;
+
+  const img = sharp(buffer, { failOnError: false });
+
+  // 🖼️ Image → PDF
+  if (targetFormat === "pdf") {
+    try {
+      // Convert everything to PNG first for consistent embedding
+      const pngBuffer =
+        originalType === "image/png" ? buffer : await img.png().toBuffer();
+
+      const pdfDoc = await PDFDocument.create();
+      const embedded = await pdfDoc.embedPng(pngBuffer);
+
+      const page = pdfDoc.addPage([embedded.width, embedded.height]);
+      page.drawImage(embedded, {
+        x: 0,
+        y: 0,
+        width: embedded.width,
+        height: embedded.height,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (err) {
+      console.error("Image → PDF via pdf-lib failed, returning original:", err);
+      return buffer;
+    }
+  }
+
+  // 🖼️ Image → Image (format change)
+  try {
+    // Sharp uses "jpeg" instead of "jpg"
+    const sharpFormat =
+      targetFormat === "jpg"
+        ? "jpeg"
+        : (targetFormat as keyof sharp.FormatEnum);
+
+    const out = await img.toFormat(sharpFormat).toBuffer();
+    return out;
+  } catch (err) {
+    console.error("Sharp image conversion failed, returning original:", err);
+    return buffer;
+  }
 }
 
 /**

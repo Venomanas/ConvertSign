@@ -1,14 +1,13 @@
 "use client";
 
 import { useFileContext } from "@/context/FileContext";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { FileObject } from "@/utils/authUtils";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
-import AnimatedButton from "@/components/Animatedbutton";
 import Animatedbutton from "@/components/Animatedbutton";
 
 //define type for target formats
@@ -23,6 +22,17 @@ export type FormatOption =
   | "txt"
   | "csv";
 
+type ConversionJobStatus = "queued" | "running" | "success" | "error";
+
+type ConversionJob = {
+  id: string;
+  file: FileObject;
+  targetFormat: FormatOption;
+  status: ConversionJobStatus;
+  progress: number; // 0–100
+  message: string;
+};
+
 const FileConverter: React.FC = () => {
   const router = useRouter();
   const { files, addFile, isLoading } = useFileContext();
@@ -30,6 +40,12 @@ const FileConverter: React.FC = () => {
   const [targetFormat, setTargetFormat] = useState<FormatOption | "">("");
   const [isConverting, setIsConverting] = useState(false);
   const [conversionError, setConversionError] = useState("");
+  const [conversionJobs, setConversionJobs] = useState<ConversionJob[]>([]);
+  const isProcessingRef = useRef(false);
+
+  // Keep a mutable queue separate from state to avoid stale closures
+  const queueRef = useRef<ConversionJob[]>([]);
+
   const [convertedFile, setConvertedFile] = useState<FileObject | null>(null);
   const { showToast } = useToast();
 
@@ -53,7 +69,7 @@ const FileConverter: React.FC = () => {
       fileType ===
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     ) {
-      return ["pdf", "csv"];
+      return ["pdf", "csv", "txt"];
     } else if (
       fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
@@ -62,6 +78,76 @@ const FileConverter: React.FC = () => {
       return ["pdf", "jpg"];
     } else {
       return [];
+    }
+  };
+
+  // Generate PNG preview for a PDF using pdfjs-dist (client-side only)
+  const generatePdfPreview = async (
+    pdfBlob: Blob,
+    converted: FileObject
+  ): Promise<void> => {
+    try {
+      // Only run in browser
+      if (typeof window === "undefined") return;
+
+      // Dynamic import so SSR doesn't choke
+      const pdfjsLib = await import("pdfjs-dist");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfjsAny = pdfjsLib as any;
+
+      // Configure worker
+      if (pdfjsAny.GlobalWorkerOptions) {
+        pdfjsAny.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/build/pdf.worker.mjs",
+          import.meta.url
+        ).toString();
+      }
+
+      const arrayBuffer = await pdfBlob.arrayBuffer();
+      const loadingTask = pdfjsAny.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      // Just first page for thumbnail
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1.5 });
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      if (!context) return;
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      const renderTask = page.render({
+        canvasContext: context,
+        viewport,
+      });
+      await renderTask.promise;
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const estimatedSize = Math.round((dataUrl.length * 3) / 4); // bytes approx
+
+      const previewName =
+        converted.name.replace(/\.pdf$/i, "") + "_preview.png";
+
+      const previewFile: FileObject = {
+        id: `preview_${converted.id}`,
+        name: previewName,
+        type: "image/png",
+        size: estimatedSize,
+        url: dataUrl,
+        base64: dataUrl,
+        dateAdded: new Date().toISOString(),
+        processed: true,
+        // optional: if your FileObject supports flags, you can add:
+        isPreview: true,
+        previewOfId: converted.id,
+      };
+
+      addFile(previewFile);
+      console.log("PDF preview generated and saved:", previewFile.name);
+    } catch (err) {
+      console.error("Failed to generate PDF preview:", err);
     }
   };
 
@@ -124,31 +210,49 @@ const FileConverter: React.FC = () => {
     return mimeMap[format];
   };
 
-  const handleConvert = async (): Promise<void> => {
-    if (!selectedFile || !targetFormat) {
-      setConversionError("Please select both a file and a target format");
-      return;
-    }
+  const syncQueueState = () => {
+    setConversionJobs([...queueRef.current]);
+  };
 
+  const updateJob = (jobId: string, patch: Partial<ConversionJob>) => {
+    queueRef.current = queueRef.current.map(job =>
+      job.id === jobId ? { ...job, ...patch } : job
+    );
+    syncQueueState();
+  };
+
+  const processQueue = async () => {
+    if (isProcessingRef.current) return;
+
+    const current = queueRef.current[0];
+    if (!current) return;
+
+    isProcessingRef.current = true;
     setIsConverting(true);
-    setConversionError("");
+
+    const jobId = current.id;
+    const job = current;
 
     try {
-      const formData = new FormData();
+      updateJob(jobId, {
+        status: "running",
+        progress: 10,
+        message: "Preparing file...",
+      });
 
-      // Get the original file data back as a Blob
-      const sourceBlob = await fetch(selectedFile.url).then(r => r.blob());
+      // 🔹 Build FormData from the job's file
+      const formData = new FormData();
+      const sourceBlob = await fetch(job.file.url).then(r => r.blob());
 
       formData.append(
         "file",
-        new File([sourceBlob], selectedFile.name, { type: selectedFile.type })
+        new File([sourceBlob], job.file.name, { type: job.file.type })
       );
-      formData.append("targetFormat", targetFormat);
+      formData.append("targetFormat", job.targetFormat);
 
-      console.log("Sending conversion request...", {
-        file: selectedFile.name,
-        type: selectedFile.type,
-        target: targetFormat,
+      updateJob(jobId, {
+        progress: 25,
+        message: "Uploading & converting...",
       });
 
       const response = await fetch("/api/convert", {
@@ -156,9 +260,9 @@ const FileConverter: React.FC = () => {
         body: formData,
       });
 
-      // If server sent JSON, treat as error payload (from NextResponse.json)
       const contentType = response.headers.get("content-type");
 
+      // If server sent JSON, treat as error payload
       if (contentType && contentType.includes("application/json")) {
         const errorData = await response.json();
         throw new Error(
@@ -173,14 +277,17 @@ const FileConverter: React.FC = () => {
         );
       }
 
-      // ✅ Now we expect raw binary (Blob) from the API (PNG/JPG/PDF/etc.)
+      updateJob(jobId, {
+        progress: 55,
+        message: "Downloading converted file...",
+      });
+
       const convertedBlob = await response.blob();
 
       // try to read filename from Content-Disposition header
-
       const disposition = response.headers.get("content-disposition");
       let fileName =
-        selectedFile.name.replace(/\.[^/.]+$/, "") + `.${targetFormat}`;
+        job.file.name.replace(/\.[^/.]+$/, "") + `.${job.targetFormat}`;
 
       if (disposition) {
         const match = /filename="?([^"]+)"?/i.exec(disposition);
@@ -191,7 +298,7 @@ const FileConverter: React.FC = () => {
 
       // Decide MIME type for the new file
       const correctMimeType =
-        getMimeTypeForFormat(targetFormat as FormatOption) ||
+        getMimeTypeForFormat(job.targetFormat as FormatOption) ||
         convertedBlob.type ||
         "application/octet-stream";
 
@@ -202,8 +309,12 @@ const FileConverter: React.FC = () => {
               type: correctMimeType,
             });
 
-      // Create object URL for preview & download
       const objectUrl = URL.createObjectURL(finalBlob);
+
+      updateJob(jobId, {
+        progress: 80,
+        message: "Saving to dashboard...",
+      });
 
       const newFile: FileObject = {
         id: `converted_${Date.now()}`,
@@ -213,26 +324,81 @@ const FileConverter: React.FC = () => {
         type: correctMimeType,
         dateAdded: new Date().toISOString(),
         processed: true,
-        convertedFormat: targetFormat,
+        convertedFormat: job.targetFormat,
         dateProcessed: new Date().toISOString(),
-        blob: finalBlob, // for persistence
-
-        // no base64 on purpose (better for big files)
+        blob: finalBlob,
       };
+
       addFile(newFile);
       setConvertedFile(newFile);
-      showToast("File converted and saved to dashboard", "success");
 
-      console.log("Conversion successful!", newFile);
+      // ✅ generate preview for PDFs here
+      if (correctMimeType === "application/pdf") {
+        await generatePdfPreview(finalBlob, newFile);
+      }
+
+      updateJob(jobId, {
+        status: "success",
+        progress: 100,
+        message: "Conversion complete",
+      });
+      showToast("File converted and saved to dashboard", "success");
     } catch (error: unknown) {
-      setConversionError(
+      const msg =
         error instanceof Error
           ? error.message
-          : "An error occurred during conversion. Please try again."
-      );
+          : "An error occurred during conversion. Please try again.";
+      setConversionError(msg);
       showToast("Conversion failed. Check details above.", "error");
+
+      updateJob(jobId, {
+        status: "error",
+        progress: 100,
+        message: "Conversion failed",
+      });
     } finally {
+      // remove the finished job from the queue
+      queueRef.current = queueRef.current.slice(1);
+      syncQueueState();
+
+      isProcessingRef.current = false;
       setIsConverting(false);
+
+      // process the next job if any
+      if (queueRef.current.length > 0) {
+        void processQueue();
+      }
+    }
+  };
+
+  const handleConvert = async (): Promise<void> => {
+    if (!selectedFile || !targetFormat) {
+      setConversionError("Please select both a file and a target format");
+      return;
+    }
+
+    setConversionError("");
+
+    const job: ConversionJob = {
+      id: `job_${Date.now()}`,
+      file: selectedFile,
+      targetFormat: targetFormat as FormatOption,
+      status: "queued",
+      progress: 0,
+      message: "Queued...",
+    };
+
+    queueRef.current.push(job);
+    syncQueueState();
+
+    if (queueRef.current.length === 1 && !isProcessingRef.current) {
+      // nothing running, start immediately
+      void processQueue();
+    } else {
+      showToast(
+        `Job queued. ${queueRef.current.length - 1} job(s) ahead.`,
+        "info"
+      );
     }
   };
 
@@ -289,12 +455,12 @@ const FileConverter: React.FC = () => {
               No files available for conversion.
             </p>
 
-            <AnimatedButton
+            <Animatedbutton
               onClick={() => router.push("/upload")}
               className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base  transition-colors duration-200"
             >
               Upload to Convert{" "}
-            </AnimatedButton>
+            </Animatedbutton>
           </div>
         ) : (
           // 🔹 Normal 2-column layout
@@ -323,7 +489,7 @@ const FileConverter: React.FC = () => {
                       }`}
                     >
                       {/* File type icon */}
-                      <div className="mr-2 sm:mr-3 flex-shrink-0">
+                      <div className="mr-2 sm:mr-3 shrink-0">
                         {file.type.startsWith("image/") ? (
                           <svg
                             className="w-5 h-5 sm:w-6 sm:h-6 text-black"
@@ -398,7 +564,7 @@ const FileConverter: React.FC = () => {
                         Selected File:
                       </p>
                       <div className="p-2 sm:p-3 bg-indigo-50 rounded-md">
-                        <p className="text-xs sm:text-sm font-medium text-black break-words">
+                        <p className="text-xs sm:text-sm font-medium text-black wrap-break-words">
                           {selectedFile.name}
                         </p>
                         <p className="text-xs text-gray-900 mt-1">
@@ -427,7 +593,7 @@ const FileConverter: React.FC = () => {
                     </div>
 
                     {conversionError && (
-                      <div className="mb-4 p-2 bg-red-50 text-red-700 text-xs sm:text-sm rounded-md break-words">
+                      <div className="mb-4 p-2 bg-red-50 text-red-700 text-xs sm:text-sm rounded-md wrap-break-words">
                         {conversionError}
                       </div>
                     )}
@@ -439,11 +605,11 @@ const FileConverter: React.FC = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -8, scale: 0.98 }}
                           transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="mb-4 p-4 sm:p-5 rounded-lg bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-200 dark:border-slate-700 shadow-sm"
+                          className="mb-4 p-4 sm:p-5 rounded-lg bg-linear-to-r from-indigo-50 to-blue-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-200 dark:border-slate-700 shadow-sm"
                         >
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                              <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
                                 <span className="text-indigo-600 dark:text-indigo-400 text-lg sm:text-xl">
                                   🎉
                                 </span>
@@ -459,7 +625,7 @@ const FileConverter: React.FC = () => {
                             </div>
                             <Animatedbutton
                               onClick={() => handleDownload(convertedFile)}
-                              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-400 to-indigo-600 hover:from-indigo-500 hover:to-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-indigo-500 dark:border-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-indigo-400"
+                              className="w-full sm:w-auto px-5 py-2.5 bg-linear-to-r from-indigo-400 to-indigo-600 hover:from-indigo-500 hover:to-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-indigo-500 dark:border-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-indigo-400"
                             >
                               Download Converted File
                             </Animatedbutton>
@@ -468,7 +634,80 @@ const FileConverter: React.FC = () => {
                       )}
                     </AnimatePresence>
 
-                    <AnimatedButton
+                    {/* queue + progress */}
+
+                    <AnimatePresence>
+                      {conversionJobs.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="mt-2 p-3 sm:p-4 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 space-y-2"
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium">Conversion queue</p>
+                            <span className="text-[11px] text-slate-500">
+                              {conversionJobs.length} job
+                              {conversionJobs.length > 1 ? "s" : ""}
+                            </span>
+                          </div>
+
+                          {/* Current running job */}
+                          {conversionJobs[0] && (
+                            <div>
+                              <p className="font-medium truncate">
+                                {conversionJobs[0].file.name} →{" "}
+                                {conversionJobs[0].targetFormat.toUpperCase()}
+                              </p>
+                              <p className="text-[11px] text-slate-500 mb-1">
+                                {conversionJobs[0].message}
+                              </p>
+                              <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                <motion.div
+                                  className="h-full bg-indigo-500"
+                                  initial={{ width: 0 }}
+                                  animate={{
+                                    width: `${conversionJobs[0].progress}%`,
+                                  }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 140,
+                                    damping: 18,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Pending jobs */}
+                          {conversionJobs.length > 1 && (
+                            <div className="pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
+                              <p className="text-[11px] text-slate-500 mb-1">
+                                In queue:
+                              </p>
+                              <ul className="space-y-1 max-h-20 overflow-y-auto">
+                                {conversionJobs.slice(1).map(job => (
+                                  <li
+                                    key={job.id}
+                                    className="flex justify-between text-[11px]"
+                                  >
+                                    <span className="truncate max-w-[70%]">
+                                      {job.file.name}
+                                    </span>
+                                    <span className="text-slate-400">
+                                      {job.targetFormat.toUpperCase()}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <Animatedbutton
                       onClick={handleConvert}
                       disabled={!targetFormat || isConverting}
                       className={`w-full py-2 px-4 text-sm sm:text-base rounded-md transition-colors ${
@@ -478,7 +717,7 @@ const FileConverter: React.FC = () => {
                       }`}
                     >
                       {isConverting ? "Converting..." : "Convert File"}{" "}
-                    </AnimatedButton>
+                    </Animatedbutton>
                   </>
                 ) : (
                   <div className="text-center py-8 sm:py-10">
@@ -513,7 +752,7 @@ const FileConverter: React.FC = () => {
                   "Download or delete files anytime from your dashboard",
                 ].map((step, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                    <div className="shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                       {index + 1}
                     </div>
                     <p className="text-gray-700 pt-0.5">{step}</p>

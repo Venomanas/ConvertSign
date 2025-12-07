@@ -264,7 +264,7 @@ const DashboardContent = (): JSX.Element => {
         {/* Search and Filter Controls */}
         <div className="mb-6 p-4 bg-white dark:bg-slate-400 rounded-lg shadow-sm">
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-grow">
+            <div className="relative grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MagnifyingGlassIcon className="h-5 w-5 text-indigo-500" />
               </div>
@@ -437,7 +437,7 @@ const DashboardContent = (): JSX.Element => {
                     </div>
 
                     {/* File Info */}
-                    <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col flex-grow">
+                    <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col grow">
                       <p
                         className="text-gray-900 dark:text-white truncate"
                         title={file.name}

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import CloudConvert from "cloudconvert";
-
+import sharp from "sharp";
+import { PDFDocument} from "pdf-lib";
 export const runtime = "nodejs"; // use Node runtime, not edge
 
 const cloudConvertApiKey = process.env.CLOUDCONVERT_API_KEY;
@@ -321,8 +322,24 @@ async function convertWordToPdfWithCloudConvert(
     );
   }
 }
+
 /**
  * Image conversion placeholder – plug Sharp here later if you want.
+ */
+// async function convertImage(
+//   buffer: Buffer,
+//   originalType: string,
+//   targetFormat: string
+// ): Promise<Buffer> {
+//   console.log(`Image conversion: ${originalType} -> ${targetFormat}`);
+//   // TODO: integrate sharp() for real image conversion if needed
+//   return buffer;
+// }
+
+/**
+ * 🔥 Real image conversion using Sharp
+ *  - image -> image (jpg/png/webp/gif/bmp)
+ *  - image -> pdf (single-page PDF with the image embedded)
  */
 async function convertImage(
   buffer: Buffer,
@@ -330,8 +347,49 @@ async function convertImage(
   targetFormat: string
 ): Promise<Buffer> {
   console.log(`Image conversion: ${originalType} -> ${targetFormat}`);
-  // TODO: integrate sharp() for real image conversion if needed
-  return buffer;
+
+  const img = sharp(buffer, { failOnError: false });
+
+  // 🖼️ Image → PDF
+  if (targetFormat === "pdf") {
+    try {
+      // Convert everything to PNG first for consistent embedding
+      const pngBuffer =
+        originalType === "image/png" ? buffer : await img.png().toBuffer();
+
+      const pdfDoc = await PDFDocument.create();
+      const embedded = await pdfDoc.embedPng(pngBuffer);
+
+      const page = pdfDoc.addPage([embedded.width, embedded.height]);
+      page.drawImage(embedded, {
+        x: 0,
+        y: 0,
+        width: embedded.width,
+        height: embedded.height,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (err) {
+      console.error("Image → PDF via pdf-lib failed, returning original:", err);
+      return buffer;
+    }
+  }
+
+  // 🖼️ Image → Image (format change)
+  try {
+    // Sharp uses "jpeg" instead of "jpg"
+    const sharpFormat =
+      targetFormat === "jpg"
+        ? "jpeg"
+        : (targetFormat as keyof sharp.FormatEnum);
+
+    const out = await img.toFormat(sharpFormat).toBuffer();
+    return out;
+  } catch (err) {
+    console.error("Sharp image conversion failed, returning original:", err);
+    return buffer;
+  }
 }
 
 /**

@@ -36,24 +36,30 @@ type ConversionJob = {
 const FileConverter: React.FC = () => {
   const router = useRouter();
   const { files, addFile, isLoading } = useFileContext();
-  const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
+  const { showToast } = useToast();
+
+  // multiple selection: store file IDs
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [targetFormat, setTargetFormat] = useState<FormatOption | "">("");
   const [isConverting, setIsConverting] = useState(false);
   const [conversionError, setConversionError] = useState("");
   const [conversionJobs, setConversionJobs] = useState<ConversionJob[]>([]);
-  const isProcessingRef = useRef(false);
-
-  // Keep a mutable queue separate from state to avoid stale closures
-  const queueRef = useRef<ConversionJob[]>([]);
-
   const [convertedFile, setConvertedFile] = useState<FileObject | null>(null);
-  const { showToast } = useToast();
 
-  //list of possible target formats based on file type
+  const isProcessingRef = useRef(false);
+  const queueRef = useRef<ConversionJob[]>([]); // actual mutable queue
+
+  // derived
+  const selectedFiles: FileObject[] = files.filter((f: FileObject) =>
+    selectedFileIds.includes(f.id)
+  );
+  const primarySelectedFile: FileObject | null =
+    selectedFiles.length > 0 ? selectedFiles[0] : null;
+
+  // list of possible target formats based on file type
   const getTargetFormats = (fileType: string): FormatOption[] => {
     if (!fileType) return [];
 
-    // determine available target formats based on source format
     if (fileType.startsWith("image/")) {
       return ["jpg", "png", "webp", "gif", "bmp"];
     } else if (fileType === "application/pdf") {
@@ -81,13 +87,30 @@ const FileConverter: React.FC = () => {
     }
   };
 
+  // intersection of target formats for multiple selected files
+  const getCommonTargetFormats = (fileTypes: string[]): FormatOption[] => {
+    if (fileTypes.length === 0) return [];
+
+    let common = getTargetFormats(fileTypes[0]);
+
+    for (let i = 1; i < fileTypes.length; i++) {
+      const next = getTargetFormats(fileTypes[i]);
+      common = common.filter(fmt => next.includes(fmt));
+    }
+
+    return common;
+  };
+
+  const availableFormats: FormatOption[] = getCommonTargetFormats(
+    selectedFiles.map(f => f.type)
+  );
+
   // Generate PNG preview for a PDF using pdfjs-dist (client-side only)
   const generatePdfPreview = async (
     pdfBlob: Blob,
     converted: FileObject
   ): Promise<void> => {
     try {
-      // Only run in browser
       if (typeof window === "undefined") return;
 
       // Dynamic import so SSR doesn't choke
@@ -95,7 +118,6 @@ const FileConverter: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pdfjsAny = pdfjsLib as any;
 
-      // Configure worker
       if (pdfjsAny.GlobalWorkerOptions) {
         pdfjsAny.GlobalWorkerOptions.workerSrc = new URL(
           "pdfjs-dist/build/pdf.worker.mjs",
@@ -139,7 +161,7 @@ const FileConverter: React.FC = () => {
         base64: dataUrl,
         dateAdded: new Date().toISOString(),
         processed: true,
-        // optional: if your FileObject supports flags, you can add:
+        // optional flags if your FileObject supports them
         isPreview: true,
         previewOfId: converted.id,
       };
@@ -151,15 +173,18 @@ const FileConverter: React.FC = () => {
     }
   };
 
-  // handle file selection
+  // handle file selection (multi-select)
   const handleFileSelect = (fileId: string): void => {
-    const file = files.find(f => f.id === fileId);
-    if (file) {
-      setSelectedFile(file);
-      setTargetFormat("");
-      setConversionError("");
-      setConvertedFile(null);
-    }
+    setTargetFormat("");
+    setConversionError("");
+    setConvertedFile(null);
+
+    setSelectedFileIds(
+      prev =>
+        prev.includes(fileId)
+          ? prev.filter(id => id !== fileId) // unselect
+          : [...prev, fileId] // select
+    );
   };
 
   //handle format selection
@@ -194,7 +219,7 @@ const FileConverter: React.FC = () => {
     return typeMap[file.type] || file.type.split("/")[1];
   };
 
-  // Add this function to properly map target formats to MIME types
+  // map target format → mime
   const getMimeTypeForFormat = (format: FormatOption): string => {
     const mimeMap: Record<FormatOption, string> = {
       jpg: "image/jpeg",
@@ -221,6 +246,7 @@ const FileConverter: React.FC = () => {
     syncQueueState();
   };
 
+  // actual queue worker
   const processQueue = async () => {
     if (isProcessingRef.current) return;
 
@@ -240,7 +266,6 @@ const FileConverter: React.FC = () => {
         message: "Preparing file...",
       });
 
-      // 🔹 Build FormData from the job's file
       const formData = new FormData();
       const sourceBlob = await fetch(job.file.url).then(r => r.blob());
 
@@ -284,7 +309,7 @@ const FileConverter: React.FC = () => {
 
       const convertedBlob = await response.blob();
 
-      // try to read filename from Content-Disposition header
+      // filename from header if present
       const disposition = response.headers.get("content-disposition");
       let fileName =
         job.file.name.replace(/\.[^/.]+$/, "") + `.${job.targetFormat}`;
@@ -296,7 +321,6 @@ const FileConverter: React.FC = () => {
         }
       }
 
-      // Decide MIME type for the new file
       const correctMimeType =
         getMimeTypeForFormat(job.targetFormat as FormatOption) ||
         convertedBlob.type ||
@@ -332,7 +356,6 @@ const FileConverter: React.FC = () => {
       addFile(newFile);
       setConvertedFile(newFile);
 
-      // ✅ generate preview for PDFs here
       if (correctMimeType === "application/pdf") {
         await generatePdfPreview(finalBlob, newFile);
       }
@@ -371,34 +394,36 @@ const FileConverter: React.FC = () => {
     }
   };
 
+  // enqueue jobs for all selected files
   const handleConvert = async (): Promise<void> => {
-    if (!selectedFile || !targetFormat) {
-      setConversionError("Please select both a file and a target format");
+    if (selectedFiles.length === 0 || !targetFormat) {
+      setConversionError("Please select at least one file and a target format");
+      return;
+    }
+
+    if (availableFormats.length === 0) {
+      setConversionError("Selected files have no common target formats.");
       return;
     }
 
     setConversionError("");
 
-    const job: ConversionJob = {
-      id: `job_${Date.now()}`,
-      file: selectedFile,
+    const jobs: ConversionJob[] = selectedFiles.map(file => ({
+      id: `job_${file.id}_${Date.now()}`,
+      file,
       targetFormat: targetFormat as FormatOption,
       status: "queued",
       progress: 0,
       message: "Queued...",
-    };
+    }));
 
-    queueRef.current.push(job);
+    queueRef.current.push(...jobs);
     syncQueueState();
 
-    if (queueRef.current.length === 1 && !isProcessingRef.current) {
-      // nothing running, start immediately
+    if (!isProcessingRef.current) {
       void processQueue();
     } else {
-      showToast(
-        `Job queued. ${queueRef.current.length - 1} job(s) ahead.`,
-        "info"
-      );
+      showToast(`Added ${jobs.length} job(s) to the queue`, "info");
     }
   };
 
@@ -418,6 +443,7 @@ const FileConverter: React.FC = () => {
         <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
           Convert Files
         </h2>
+
         {isLoading ? (
           // 🔹 Skeleton while files load from IndexedDB
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
@@ -459,7 +485,7 @@ const FileConverter: React.FC = () => {
               onClick={() => router.push("/upload")}
               className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base  transition-colors duration-200"
             >
-              Upload to Convert{" "}
+              Upload to Convert
             </Animatedbutton>
           </div>
         ) : (
@@ -471,106 +497,135 @@ const FileConverter: React.FC = () => {
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-              {" "}
+              {/* File selection list */}
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                 <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
-                  Select File to Convert
+                  Select File(s) to Convert
                 </h3>
 
                 <div className="max-h-60 sm:max-h-72 overflow-y-auto pr-2">
-                  {files.map(file => (
-                    <div
-                      key={file.id}
-                      onClick={() => handleFileSelect(file.id)}
-                      className={`flex items-center p-2 sm:p-3 mb-2 rounded-md cursor-pointer transition-colors ${
-                        selectedFile?.id === file.id
-                          ? "bg-white hover:bg-indigo-100 border border-indigo-300"
-                          : "bg-gray-50 hover:bg-gray-100"
-                      }`}
-                    >
-                      {/* File type icon */}
-                      <div className="mr-2 sm:mr-3 shrink-0">
-                        {file.type.startsWith("image/") ? (
-                          <svg
-                            className="w-5 h-5 sm:w-6 sm:h-6 text-black"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                        ) : file.type.includes("pdf") ? (
-                          <svg
-                            className="w-5 h-5 sm:w-6 sm:h-6 text-red-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        )}
-                      </div>
+                  {files.map(file => {
+                    const isSelected = selectedFileIds.includes(file.id);
 
-                      {/* File name and info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                          {file.name}
-                        </p>
-                        <p className="text-xs text-gray-900">
-                          {(file.size / 1024).toFixed(2)} KB •{" "}
-                          {getOriginalFormat(file).toUpperCase()}
-                        </p>
+                    return (
+                      <div
+                        key={file.id}
+                        onClick={() => handleFileSelect(file.id)}
+                        className={`flex items-center p-2 sm:p-3 mb-2 rounded-md cursor-pointer transition-colors ${
+                          isSelected
+                            ? "bg-white hover:bg-indigo-50 border border-indigo-300 shadow-sm"
+                            : "bg-gray-50 hover:bg-gray-100"
+                        }`}
+                      >
+                        {/* tiny checkbox / tick */}
+                        <div className="mr-2 sm:mr-3 shrink-0">
+                          <span
+                            className={`inline-flex h-4 w-4 rounded-sm border text-[10px] items-center justify-center ${
+                              isSelected
+                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                : "border-gray-300 text-transparent"
+                            }`}
+                          >
+                            ✓
+                          </span>
+                        </div>
+
+                        {/* File type icon */}
+                        <div className="mr-2 sm:mr-3 shrink-0">
+                          {file.type.startsWith("image/") ? (
+                            <svg
+                              className="w-5 h-5 sm:w-6 sm:h-6 text-black"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          ) : file.type.includes("pdf") ? (
+                            <svg
+                              className="w-5 h-5 sm:w-6 sm:h-6 text-red-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* File name and info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-gray-900">
+                            {(file.size / 1024).toFixed(2)} KB •{" "}
+                            {getOriginalFormat(file).toUpperCase()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Conversion options */}
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                 <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-700">
                   Conversion Options
                 </h3>
 
-                {selectedFile ? (
+                {selectedFiles.length > 0 ? (
                   <>
                     <div className="mb-4">
                       <p className="mb-2 text-xs sm:text-sm text-black">
-                        Selected File:
+                        {selectedFiles.length === 1
+                          ? "Selected file:"
+                          : `Selected files (${selectedFiles.length}):`}
                       </p>
                       <div className="p-2 sm:p-3 bg-indigo-50 rounded-md">
                         <p className="text-xs sm:text-sm font-medium text-black wrap-break-words">
-                          {selectedFile.name}
+                          {selectedFiles.length === 1
+                            ? primarySelectedFile?.name
+                            : `${primarySelectedFile?.name} + ${
+                                selectedFiles.length - 1
+                              } more`}
                         </p>
-                        <p className="text-xs text-gray-900 mt-1">
-                          Original format:{" "}
-                          {getOriginalFormat(selectedFile).toUpperCase()}
-                        </p>
+                        {primarySelectedFile && (
+                          <p className="text-xs text-gray-900 mt-1">
+                            Original format:{" "}
+                            {getOriginalFormat(
+                              primarySelectedFile
+                            ).toUpperCase()}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -584,7 +639,7 @@ const FileConverter: React.FC = () => {
                         className="w-full px-3 py-2 text-sm border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
                       >
                         <option value="">Select target format</option>
-                        {getTargetFormats(selectedFile.type).map(format => (
+                        {availableFormats.map(format => (
                           <option key={format} value={format}>
                             {format.toUpperCase()}
                           </option>
@@ -597,6 +652,8 @@ const FileConverter: React.FC = () => {
                         {conversionError}
                       </div>
                     )}
+
+                    {/* success banner for last finished conversion */}
                     <AnimatePresence mode="wait">
                       {convertedFile && (
                         <motion.div
@@ -635,7 +692,6 @@ const FileConverter: React.FC = () => {
                     </AnimatePresence>
 
                     {/* queue + progress */}
-
                     <AnimatePresence>
                       {conversionJobs.length > 0 && (
                         <motion.div
@@ -709,20 +765,28 @@ const FileConverter: React.FC = () => {
 
                     <Animatedbutton
                       onClick={handleConvert}
-                      disabled={!targetFormat || isConverting}
+                      disabled={
+                        !targetFormat ||
+                        availableFormats.length === 0 ||
+                        selectedFiles.length === 0 ||
+                        isConverting
+                      }
                       className={`w-full py-2 px-4 text-sm sm:text-base rounded-md transition-colors ${
-                        !targetFormat || isConverting
+                        !targetFormat ||
+                        availableFormats.length === 0 ||
+                        selectedFiles.length === 0 ||
+                        isConverting
                           ? "bg-gray-300 text-black cursor-not-allowed"
                           : "bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white"
                       }`}
                     >
-                      {isConverting ? "Converting..." : "Convert File"}{" "}
+                      {isConverting ? "Converting..." : "Convert File"}
                     </Animatedbutton>
                   </>
                 ) : (
                   <div className="text-center py-8 sm:py-10">
                     <p className="text-sm text-gray-500 px-4">
-                      Select a file to see conversion options
+                      Select one or more files to see conversion options
                     </p>
                   </div>
                 )}
@@ -731,6 +795,7 @@ const FileConverter: React.FC = () => {
           </motion.div>
         )}
 
+        {/* how to use section */}
         <div className="mt-6 sm:mt-8 ">
           <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark:text-slate-300">
             How to use
@@ -743,12 +808,12 @@ const FileConverter: React.FC = () => {
               height={120}
               className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
             />
-            <div className="mt-1  rounded-lg p-6">
+            <div className="mt-1 rounded-lg p-6">
               <ol className="space-y-3 space-x-1">
                 {[
                   "Upload your files via upload button",
-                  "select file options  ",
-                  "choose conversion type ",
+                  "Select one or more files from the list",
+                  "Choose a conversion type that all selected files support",
                   "Download or delete files anytime from your dashboard",
                 ].map((step, index) => (
                   <li key={index} className="flex items-start gap-3">

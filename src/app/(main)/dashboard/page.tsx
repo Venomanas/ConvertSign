@@ -21,6 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import { downloadFile } from "@/utils/fileUtils";
 import { FileObject } from "@/utils/authUtils";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 import PageTransition from "@/components/PageTransition";
 import Animatedbutton from "@/components/Animatedbutton";
 
@@ -119,6 +120,7 @@ const DashboardContent = (): JSX.Element => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
   const router = useRouter();
+  const { showToast } = useToast();
 
   const handleDownload = (file: FileObject): void => {
     try {
@@ -143,9 +145,9 @@ const DashboardContent = (): JSX.Element => {
   };
 
   const handleDelete = (fileId: string): void => {
-    if (window.confirm("Are you sure you want to delete this file?")) {
+   
       removeFile(fileId);
-    }
+     showToast("File deleted", "info");
   };
 
   const getFilteredFiles = (): FileObject[] => {
@@ -256,13 +258,17 @@ const DashboardContent = (): JSX.Element => {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Your Dashboard
           </h2>
-          <p className="mt-2  text-green-600 dark:text-green-400">
-            Welcome back, {currentUser.email}!
+          <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-200">
+            Welcome back,&nbsp;
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              {currentUser.displayName ?? currentUser.email}
+            </span>
+            !
           </p>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="mb-6 p-4 bg-white dark:bg-slate-400 rounded-lg shadow-sm">
+        <div className="mb-6 p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -273,7 +279,7 @@ const DashboardContent = (): JSX.Element => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search files..."
-                className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 bg-gray-50 dark:bg-slate-100 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
+                className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -311,29 +317,53 @@ const DashboardContent = (): JSX.Element => {
 
         {/* Tab navigation */}
         <div className="mb-6">
-          <div className="border-b border-gray-200 dark:border-slate-300">
-            <nav className="-mb-px flex space-x-4 overflow-x-auto">
-              {tabs.map(tab => (
-                <Animatedbutton
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`group inline-flex items-center gap-2 py-3 px-1 sm:px-3 border-b-2 transition-colors duration-200 whitespace-nowrap tracking-tight ${
-                    activeTab === tab.id
-                      ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                      : "border-transparent text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:border-gray-400 dark:hover:text-slate-100 dark:hover:border-slate-200"
-                  }`}
-                >
-                  {tab.icon &&
-                    React.cloneElement(tab.icon, {
-                      className: `w-5 h-5 ${
-                        activeTab === tab.id
-                          ? "text-indigo-500 dark:text-indigo-400"
-                          : "text-gray-400 dark:text-slate-500 group-hover:text-gray-500 dark:group-hover:text-slate-400"
-                      }`,
-                    })}
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </Animatedbutton>
-              ))}
+          <div className="border-b border-slate-200 dark:border-slate-700">
+            <nav className="-mb-px flex gap-2 overflow-x-auto">
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.id;
+
+                return (
+                  <Animatedbutton
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as ActiveTab)}
+                    className={`group relative inline-flex items-center gap-2 
+              py-2.5 px-2 sm:px-4 
+              border-b-2 rounded-t-md
+              transition-all duration-200 ease-out
+              whitespace-nowrap tracking-tight
+              ${
+                isActive
+                  ? `
+                    border-indigo-500 
+                    text-indigo-600 dark:text-indigo-400
+                    bg-white dark:bg-slate-900
+                    shadow-[0_3px_0_rgba(79,70,229,0.7)]
+                    -translate-y-px
+                  `
+                  : `
+                    border-transparent 
+                    text-slate-500 dark:text-slate-400
+                    hover:text-slate-900 dark:hover:text-white
+                    hover:bg-slate-100/70 dark:hover:bg-slate-800/60
+                    hover:border-slate-300 dark:hover:border-slate-500
+                  `
+              }`}
+                  >
+                    {tab.icon &&
+                      React.cloneElement(tab.icon, {
+                        className: `w-5 h-5 transition-colors duration-200 ${
+                          isActive
+                            ? "text-indigo-500 dark:text-indigo-400"
+                            : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                        }`,
+                      })}
+
+                    <span className="text-xs sm:text-sm font-medium">
+                      {tab.label}
+                    </span>
+                  </Animatedbutton>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -356,9 +386,9 @@ const DashboardContent = (): JSX.Element => {
           </div>
         ) : files.length === 0 ? (
           // 🔹 Your original "No files yet" empty state
-          <div className="text-center py-12 px-4 bg-white dark:bg-slate-100 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
-            <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
-            <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-black">
+          <div className="text-center py-12 px-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+            <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400" />
+            <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
               No files yet
             </h3>
             <p className="mt-1 text-sm text-gray-500 ">
@@ -407,7 +437,7 @@ const DashboardContent = (): JSX.Element => {
                       ease: "easeOut",
                     }}
                     whileHover={{ scale: 1.02, translateY: -2 }}
-                    className="bg-white dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
+                    className="bg-indigo-100 dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
                   >
                     {/* File Preview */}
                     <div className="h-48 bg-gray-100 dark:bg-slate-300 flex items-center justify-center relative p-2">
@@ -456,14 +486,13 @@ const DashboardContent = (): JSX.Element => {
                       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
                         <Animatedbutton
                           onClick={() => handleDownload(file)}
-                          className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-indigo-600 text-white text-sm transition-colors duration-200 hover:bg-indigo-700"
+                          className=" relative flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white shadow-[0_4px_0_rgba(79,70,229,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(55,48,163,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(55,48,163,1)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 "
                         >
                           <ArrowDownTrayIcon className="w-4 h-4" />
                           Download
                         </Animatedbutton>
 
                         {/* NEW: Sign button only for images */}
-
                         {file.type.startsWith("image/") && (
                           <Animatedbutton
                             onClick={() =>
@@ -473,7 +502,7 @@ const DashboardContent = (): JSX.Element => {
                                 )}`
                               )
                             }
-                            className="px-3 py-2 rounded-md border border-inidgo-200 text-black text-sm hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black hover:dark:text-white dark:text-white"
+                            className=" relative inline-flex items-center justify-center px-3 py-2 rounded-md border border-indigo-200 bg-slate-100 text-sm text-black dark:bg-slate-700 dark:text-white dark:border-slate-500 shadow-[0_3px_0_rgba(148,163,184,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(100,116,139,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(100,116,139,1)] hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300"
                           >
                             Sign
                           </Animatedbutton>
@@ -481,7 +510,7 @@ const DashboardContent = (): JSX.Element => {
 
                         <Animatedbutton
                           onClick={() => handleDelete(file.id)}
-                          className="px-2 py-2  rounded-md border text-black text-sm hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black hover:dark:text-white dark:text-white"
+                          className="relative inline-flex items-center justify-center px-2 py-2 rounded-md border border-red-700 bg-red-600 text-sm text-white shadow-[0_3px_0_rgba(185,28,28,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(153,27,27,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(153,27,27,1)] hover:bg-red-500 dark:bg-red-700 dark:border-red-900 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 "
                         >
                           <TrashIcon className="w-4 h-4" />
                         </Animatedbutton>

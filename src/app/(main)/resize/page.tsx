@@ -377,7 +377,7 @@ const ResizePage: React.FC = () => {
                     </h3>
 
                     {error && (
-                      <div className="mb-4 p-2 sm:p-3 bg-red-50 text-red-700 rounded-md  sm:text-sm break-words">
+                      <div className="mb-4 p-2 sm:p-3 bg-red-50 text-red-700 rounded-md  sm:text-sm wrap-break-words">
                         {error}
                       </div>
                     )}
@@ -578,7 +578,7 @@ const ResizePage: React.FC = () => {
                   "Download or Delete images anytime from your dashboard",
                 ].map((step, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                    <div className="shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                       {index + 1}
                     </div>
                     <p className="text-gray-700 pt-0.5">{step}</p>

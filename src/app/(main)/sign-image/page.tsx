@@ -347,7 +347,7 @@ const SignImagePage: React.FC = () => {
                 No signatures found. Create one on the{" "}
                 <Animatedbutton
                   onClick={() => router.push("/signature")}
-                  className="text-indigo-600 dark:text-indigo-400 underline"
+                  className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base  transition-colors duration-200"
                 >
                   Signature page
                 </Animatedbutton>{" "}

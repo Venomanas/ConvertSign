@@ -33,7 +33,7 @@ export default function MainAppLayout({
       {/* The Header now only needs the onProfileClick prop! */}
       <Header onProfileClick={() => setShowProfile(true)} />
 
-      <main className="flex-grow container mx-auto px-4 py-8 sm:p-6 lg:p-8">
+      <main className="grow container mx-auto px-4 py-8 sm:p-6 lg:p-8">
         {showProfile ? (
           <UserProfile onClose={() => setShowProfile(false)} />
         ) : (

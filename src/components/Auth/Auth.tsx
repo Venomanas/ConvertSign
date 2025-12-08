@@ -20,7 +20,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900">ConvertSign</h1>
           <p className="mt-2 text-sm text-gray-600">
-            File Conversion & Signature Tool
+            File Conversion, Resizer & Signature Tool
           </p>
         </div>
 

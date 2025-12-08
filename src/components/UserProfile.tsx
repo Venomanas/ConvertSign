@@ -2,6 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import React from "react";
+import Animatedbutton from "./Animatedbutton";
 
 interface userProfileProps {
   onClose: () => void;
@@ -62,12 +63,19 @@ const UserProfile: React.FC<userProfileProps> = ({ onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          <Animatedbutton
             onClick={handleSignOut}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+            className=" relative inline-flex items-center justify-center px-2 py-2 rounded-md border border-red-700 bg-red-600 text-sm text-white
+ shadow-[0_3px_0_rgba(185,28,28,1)]
+                               transform transition-all duration-150
+                               hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(153,27,27,1)]
+                                active:translate-y-0 active:shadow-[0_2px_0_rgba(153,27,27,1)]
+                                hover:bg-red-500
+                                dark:bg-red-700 dark:border-red-900 dark:hover:bg-red-600
+focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400"
           >
             Sign Out
-          </button>
+          </Animatedbutton>
         </div>
       </div>
       <Image

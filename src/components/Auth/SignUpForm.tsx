@@ -1,6 +1,8 @@
 "use client";
 import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
+import Animatedbutton from "../Animatedbutton";
+import { motion } from "framer-motion";
 
 interface FormData {
   email: string;
@@ -181,13 +183,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
         </button>
       </form>
 
-      <div className="mt-6 text-center text-sm">
+      <motion.div className="mt-6 text-center text-sm">
         <span className="text-amber-400 font-semibold">
           Already have an account ?
         </span>
-        <button
+        <Animatedbutton
           onClick={onToggleForm}
-          className="font-medium transition-colors underline text-[#1a1b60]"
+          className="relative ml-1 font-semibold text-[#1a1b60] transition-all duration-200 hover:text-[#06923E] active:translate-y-0.5 before:content-[''] before:absolute before:left-0 before:-bottom-1 before:w-full before:h-0.5 before:bg-[#1a1b60]  before:opacity-40 before:transition-all before:duration-200 hover:before:bg-[#06923E] active:before:translate-y-0.5"
           onMouseEnter={e => {
             e.currentTarget.style.color = "#06923E";
           }}
@@ -196,8 +198,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleForm }) => {
           }}
         >
           Sign in
-        </button>
-      </div>
+        </Animatedbutton>
+      </motion.div>
     </div>
   );
 };

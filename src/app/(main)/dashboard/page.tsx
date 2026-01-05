@@ -262,8 +262,8 @@ const DashboardContent = (): JSX.Element => {
           <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-200">
             Welcome back &nbsp;
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {currentUser.displayName ?? currentUser.displayName}
-            </span>
+              {currentUser.displayName ?? currentUser.email ?? "User"}
+            </span>{" "}
             !
           </p>
         </div>
@@ -287,10 +287,7 @@ const DashboardContent = (): JSX.Element => {
             {/* Sort Controls */}
             <div className="flex items-center gap-3">
               <div className="relative min-w-[140px]">
-                <label
-                  htmlFor="sort-by"
-                  className="text-sm font-medium text-gray-700 dark:text-slate-300"
-                ></label>
+                <label htmlFor="sort-by" className="sr-only">Sort by</label>
                 <select
                   id="sort-by"
                   value={sortBy}

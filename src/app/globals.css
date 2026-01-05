@@ -112,6 +112,14 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -120,6 +128,5 @@
     @apply bg-background text-foreground;
     max-width: 100%;
     overflow-x: hidden; /* prevent sideways scrolling from tiny overflow bugs */
-
   }
 }

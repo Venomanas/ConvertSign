@@ -14,6 +14,8 @@ import {
   ChevronDownIcon,
   ArrowUpTrayIcon,
   DocumentArrowUpIcon,
+  BarsArrowDownIcon,
+  BarsArrowUpIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileContext } from "@/context/FileContext";
@@ -145,9 +147,8 @@ const DashboardContent = (): JSX.Element => {
   };
 
   const handleDelete = (fileId: string): void => {
-   
-      removeFile(fileId);
-     showToast("File deleted", "info");
+    removeFile(fileId);
+    showToast("File deleted", "info");
   };
 
   const getFilteredFiles = (): FileObject[] => {
@@ -259,16 +260,16 @@ const DashboardContent = (): JSX.Element => {
             Your Dashboard
           </h2>
           <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-200">
-            Welcome back,&nbsp;
+            Welcome back &nbsp;
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {currentUser.displayName ?? currentUser.email}
+              {currentUser.displayName ?? currentUser.displayName}
             </span>
             !
           </p>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="mb-6 p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+        <div className="mb-8 p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -279,36 +280,47 @@ const DashboardContent = (): JSX.Element => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search files..."
-                className="block w-full rounded-md border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500"
+                className="block w-full h-11 rounded-xl border-slate-200 dark:border-slate-600 pl-10 pr-3 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="sort-by"
-                className="text-sm font-medium text-gray-700 dark:text-slate-300"
-              ></label>
-              <select
-                id="sort-by"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as SortBy)}
-                className="block w-full rounded-md border-gray-300 dark:border-slate-600 py-2 pl-3 pr-8  bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="dateAdded">Date</option>
-                <option value="name">Name</option>
-                <option value="type">Type</option>
-                <option value="size">Size</option>
-              </select>
+
+            {/* Sort Controls */}
+            <div className="flex items-center gap-3">
+              <div className="relative min-w-[140px]">
+                <label
+                  htmlFor="sort-by"
+                  className="text-sm font-medium text-gray-700 dark:text-slate-300"
+                ></label>
+                <select
+                  id="sort-by"
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as SortBy)}
+                  className="block w-full h-11 rounded-xl border-slate-200 dark:border-slate-600 pl-4 pr-10 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none cursor-pointer"
+                >
+                  <option value="dateAdded">Date</option>
+                  <option value="name">Name</option>
+                  <option value="type">Type</option>
+                  <option value="size">Size</option>
+                </select>
+                {/* Manually placed Chevron for the Select box (Visual only) */}
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <ChevronDownIcon
+                    className="h-4 w-4 text-slate-500"
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
               <Animatedbutton
                 onClick={() =>
                   setSortDirection(sortDirection === "asc" ? "desc" : "asc")
                 }
-                className="p-2 rounded-md  hover:bg-gray-100 dark:hover:bg-slate-900"
+                className="h-11 w-11 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 aria-label="Toggle sort direction"
               >
                 {sortDirection === "asc" ? (
-                  <ChevronUpIcon className="w-5 h-5 text-black dark:text-white" />
+                  <ChevronUpIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 ) : (
-                  <ChevronDownIcon className="w-5 h-5 text-black dark:text-white" />
+                  <ChevronDownIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 )}
               </Animatedbutton>
             </div>
@@ -316,9 +328,9 @@ const DashboardContent = (): JSX.Element => {
         </div>
 
         {/* Tab navigation */}
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="border-b border-slate-200 dark:border-slate-700">
-            <nav className="-mb-px flex gap-2 overflow-x-auto">
+            <nav className="-mb-px flex gap-6 overflow-x-auto scrollbar-hide px-1">
               {tabs.map(tab => {
                 const isActive = activeTab === tab.id;
 
@@ -326,41 +338,50 @@ const DashboardContent = (): JSX.Element => {
                   <Animatedbutton
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as ActiveTab)}
-                    className={`group relative inline-flex items-center gap-2 
-              py-2.5 px-2 sm:px-4 
-              border-b-2 rounded-t-md
-              transition-all duration-200 ease-out
-              whitespace-nowrap tracking-tight
-              ${
-                isActive
-                  ? `
-                    border-indigo-500 
-                    text-indigo-600 dark:text-indigo-400
-                    bg-white dark:bg-slate-900
-                    shadow-[0_3px_0_rgba(79,70,229,0.7)]
-                    -translate-y-px
-                  `
-                  : `
-                    border-transparent 
-                    text-slate-500 dark:text-slate-400
-                    hover:text-slate-900 dark:hover:text-white
-                    hover:bg-slate-100/70 dark:hover:bg-slate-800/60
-                    hover:border-slate-300 dark:hover:border-slate-500
-                  `
-              }`}
+                    className={`
+                      relative group flex items-center gap-2 py-4 px-2
+                      text-sm font-medium outline-none transition-colors duration-300
+                      ${
+                        isActive
+                          ? "text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      }
+                    `}
                   >
-                    {tab.icon &&
-                      React.cloneElement(tab.icon, {
-                        className: `w-5 h-5 transition-colors duration-200 ${
-                          isActive
-                            ? "text-indigo-500 dark:text-indigo-400"
-                            : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                        }`,
-                      })}
-
-                    <span className="text-xs sm:text-sm font-medium">
-                      {tab.label}
+                    {/* Hover Background - Subtle Pill Effect */}
+                    <span
+                      className={`absolute inset-0 rounded-lg bg-slate-100 dark:bg-slate-800 opacity-0 scale-95 transition-all duration-200 ease-out
+                      ${
+                        !isActive
+                          ? "group-hover:opacity-100 group-hover:scale-100"
+                          : ""
+                      }
+                      `}
+                    />
+                    <span className="relative z-10 flex items-center gap-2">
+                      {tab.icon &&
+                        React.cloneElement(tab.icon, {
+                          className: `w-5 h-5 transition-colors duration-300 ${
+                            isActive
+                              ? "text-indigo-500 dark:text-indigo-400 scale-110"
+                              : "text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-300"
+                          }`,
+                        })}
+                      <span>{tab.label}</span>
                     </span>
+
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-t-full"
+                        initial={false}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                      />
+                    )}
                   </Animatedbutton>
                 );
               })}
@@ -370,129 +391,138 @@ const DashboardContent = (): JSX.Element => {
 
         {/* File List */}
         {isLoading ? (
-          // 🔹 Skeleton while IndexedDB is loading
+          // 🔹 Skeleton - Updated to match rounded-2xl look
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, idx) => (
               <div
                 key={idx}
-                className="bg-white dark:bg-slate-700 rounded-xl shadow-md p-4 animate-pulse flex flex-col"
+                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 animate-pulse flex flex-col h-[340px]"
               >
-                <div className="h-40 bg-gray-200 dark:bg-slate-600 rounded-md mb-4" />
-                <div className="h-4 bg-gray-200 dark:bg-slate-600 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/3" />
+                <div className="h-48 bg-slate-100 dark:bg-slate-700 rounded-xl mb-4" />
+                <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-3/4 mb-3" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-1/2 mb-auto" />
+                <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded-lg w-full mt-4" />
               </div>
             ))}
           </div>
         ) : files.length === 0 ? (
-          // 🔹 Your original "No files yet" empty state
-          <div className="text-center py-12 px-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
-            <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400" />
-            <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+          // 🔹 Empty State - "No files yet"
+          <div className="flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
+            <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-full mb-4">
+              <ArrowUpTrayIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
               No files yet
             </h3>
-            <p className="mt-1 text-sm text-gray-500 ">
-              Upload files to get started.
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8">
+              Upload your documents or images to start converting, signing, and
+              managing them.
             </p>
-            <Image
-              src={"choose2.svg"}
-              alt="Upload Files"
-              width={150}
-              height={150}
-              className="mx-auto mb-10 mt-10 transition-transform duration-300 group-hover:scale-110"
-            />
+
             <Animatedbutton
               onClick={() => router.push("/upload")}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 transition-colors duration-200"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 dark:shadow-none hover:-translate-y-0.5"
             >
-              <ArrowUpTrayIcon className="w-4 h-4" />
+              <ArrowUpTrayIcon className="w-5 h-5" />
               Upload Your First File
             </Animatedbutton>
           </div>
         ) : filteredFiles.length === 0 ? (
-          // 🔹 "No files found" for search/filter, when you DO have some files
-          <div className="text-center py-12 px-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
-            <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" />
-            <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+          // 🔹 Empty Filter State
+          <div className="text-center py-16 px-4 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
+            <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
+            <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
               No files found
             </p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            <p className="mt-1 text-slate-500 dark:text-slate-400">
               Try adjusting your search or changing the active tab.
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {filteredFiles.map((file, index) => (
                   <motion.div
                     key={file.id}
                     layout
-                    initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 15, scale: 0.98 }}
-                    transition={{
-                      duration: 0.25,
-                      delay: index * 0.03,
-                      ease: "easeOut",
-                    }}
-                    whileHover={{ scale: 1.02, translateY: -2 }}
-                    className="bg-indigo-100 dark:bg-slate-700 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group flex flex-col"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    className="group flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-indigo-100 dark:hover:border-slate-600 transition-all duration-300"
                   >
-                    {/* File Preview */}
-                    <div className="h-48 bg-gray-100 dark:bg-slate-300 flex items-center justify-center relative p-2">
+                    {/* File Preview Area */}
+                    <div className="relative h-48 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center p-4 border-b border-slate-100 dark:border-slate-700/50">
                       {file.type.startsWith("image/") &&
                       (file.base64 || file.url) ? (
-                        <Base64Image
-                          src={file.base64 || file.url}
-                          alt={file.name}
-                          className="w-full h-full object-contain"
-                        />
+                        <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-105">
+                          <Base64Image
+                            src={file.base64 || file.url}
+                            alt={file.name}
+                            className="w-full h-full object-contain drop-shadow-sm"
+                          />
+                        </div>
                       ) : (
-                        <div className="text-4xl">{getFileIcon(file)}</div>
+                        <div className="text-5xl text-slate-400 transition-transform duration-300 group-hover:scale-110 group-hover:text-indigo-500">
+                          {getFileIcon(file)}
+                        </div>
                       )}
-                      {/* Badges */}
-                      <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
+
+                      {/* Floating Badges */}
+                      <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
                         {file.processed && (
-                          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+                          <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
                             Processed
                           </span>
                         )}
                         {file.isSignature && (
-                          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">
+                          <span className="bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20">
                             Signature
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* File Info */}
-                    <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex flex-col grow">
-                      <p
-                        className="text-gray-900 dark:text-white truncate"
-                        title={file.name}
-                      >
-                        {file.name}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                        {formatBytes(file.size)} •{" "}
-                        {file.type.split("/")[1]?.toUpperCase() || "UNKNOWN"}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
-                        Added: {new Date(file.dateAdded).toLocaleDateString()}
-                      </p>
+                    {/* Card Body */}
+                    <div className="p-5 flex flex-col grow">
+                      <div className="mb-4">
+                        <h4
+                          className="font-bold text-slate-900 dark:text-slate-100 truncate text-base mb-1"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          <span className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300">
+                            {file.type.split("/")[1]?.toUpperCase() || "FILE"}
+                          </span>
+                          <span>•</span>
+                          <span>{formatBytes(file.size)}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-2">
+                          {new Date(file.dateAdded).toLocaleDateString(
+                            undefined,
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </p>
+                      </div>
 
-                      {/* Actions */}
-                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex gap-2 justify-end">
+                      {/* Action Buttons - Pushed to bottom */}
+                      <div className="mt-auto pt-4 flex gap-2 border-t border-slate-100 dark:border-slate-700/50">
                         <Animatedbutton
                           onClick={() => handleDownload(file)}
-                          className=" relative flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white shadow-[0_4px_0_rgba(79,70,229,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(55,48,163,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(55,48,163,1)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 "
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 shadow-[0_4px_0_rgb(67,56,202)] active:shadow-none active:translate-y-1 hover:bg-indigo-500 transition-all"
                         >
                           <ArrowDownTrayIcon className="w-4 h-4" />
-                          Download
+                          <span className="hidden sm:inline">Save</span>
                         </Animatedbutton>
 
-                        {/* NEW: Sign button only for images */}
+                        {/* Sign Button */}
                         {file.type.startsWith("image/") && (
                           <Animatedbutton
                             onClick={() =>
@@ -502,7 +532,7 @@ const DashboardContent = (): JSX.Element => {
                                 )}`
                               )
                             }
-                            className=" relative inline-flex items-center justify-center px-3 py-2 rounded-md border border-indigo-200 bg-slate-100 text-sm text-black dark:bg-slate-700 dark:text-white dark:border-slate-500 shadow-[0_3px_0_rgba(148,163,184,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(100,116,139,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(100,116,139,1)] hover:bg-indigo-50 dark:hover:bg-indigo-300 hover:text-black dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 shadow-[0_4px_0_rgb(199,210,254)] active:shadow-none active:translate-y-1 transition-all dark:bg-slate-700 dark:text-indigo-300 dark:border-slate-600 dark:shadow-[0_4px_0_rgb(51,65,85)]"
                           >
                             Sign
                           </Animatedbutton>
@@ -510,7 +540,8 @@ const DashboardContent = (): JSX.Element => {
 
                         <Animatedbutton
                           onClick={() => handleDelete(file.id)}
-                          className="relative inline-flex items-center justify-center px-2 py-2 rounded-md border border-red-700 bg-red-600 text-sm text-white shadow-[0_3px_0_rgba(185,28,28,1)] transform transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(153,27,27,1)] active:translate-y-0 active:shadow-[0_2px_0_rgba(153,27,27,1)] hover:bg-red-500 dark:bg-red-700 dark:border-red-900 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 "
+                          className="w-10 flex-none inline-flex items-center justify-center rounded-xl bg-white border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 hover:text-red-600 shadow-[0_4px_0_rgb(254,226,226)] active:shadow-none active:translate-y-1 transition-all dark:bg-slate-800 dark:border-red-900/30 dark:shadow-none"
+                          title="Delete file"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </Animatedbutton>
@@ -521,8 +552,8 @@ const DashboardContent = (): JSX.Element => {
               </AnimatePresence>
             </div>
 
-            <p className="mt-8 text-sm text-gray-500 dark:text-slate-400 text-center">
-              Showing {filteredFiles.length} of {files.length} files.
+            <p className="mt-10 mb-4 text-sm font-medium text-slate-400 text-center">
+              Showing {filteredFiles.length} of {files.length} files
             </p>
           </>
         )}

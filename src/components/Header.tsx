@@ -10,11 +10,11 @@ import PageTransition from "./PageTransition";
 
 // Define the navigation items with paths
 const navItems = [
+  { href: "/dashboard", label: "Explore" },
   { href: "/upload", label: "Upload" },
   { href: "/convert", label: "Convert" },
   { href: "/resize", label: "Resize" },
   { href: "/signature", label: "Signature" },
-  { href: "/dashboard", label: "Dashboard" },
 ];
 
 // Define a separate prop type for the component
@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
               href="/dashboard"
               className="text-xl sm:text-2xl font-bold text-sky-50 hover:text-white transition-colors"
             >
-              ConvertSign 
+              ConvertSign
             </Link>
 
             {/* Desktop Navigation */}

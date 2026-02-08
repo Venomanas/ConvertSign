@@ -16,6 +16,15 @@ import {
   DocumentArrowUpIcon,
   BarsArrowDownIcon,
   BarsArrowUpIcon,
+  DocumentTextIcon,
+  PencilSquareIcon,
+  ArrowsPointingOutIcon,
+  QrCodeIcon,
+  LanguageIcon,
+  DocumentDuplicateIcon,
+  TableCellsIcon,
+  CodeBracketIcon,
+  CameraIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileContext } from "@/context/FileContext";
@@ -114,6 +123,215 @@ const getFileIcon = (file: FileObject): JSX.Element => {
   }
 };
 
+// Feature cards configuration for quick actions grid
+interface FeatureCard {
+  id: string;
+  label: string;
+  icon: JSX.Element;
+  href: string;
+  description?: string;
+}
+
+const featureCards: FeatureCard[] = [
+  // Image Conversions
+  {
+    id: "image-to-text",
+    label: "Image To Text",
+    icon: <DocumentTextIcon className="w-8 h-8" />,
+    href: "/image-to-text",
+  },
+  {
+    id: "jpg-to-word",
+    label: "Jpg To Word",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/jpg-to-word",
+  },
+  {
+    id: "pdf-to-text",
+    label: "Pdf To Text",
+    icon: <DocumentTextIcon className="w-8 h-8" />,
+    href: "/pdf-to-text",
+  },
+  {
+    id: "pdf-to-word",
+    label: "Pdf To Word",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/pdf-to-word",
+  },
+  // More conversions
+  {
+    id: "text-to-word",
+    label: "Text To Word",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/text-to-word",
+  },
+  {
+    id: "invert-image",
+    label: "Invert Image",
+    icon: <CameraIcon className="w-8 h-8" />,
+    href: "/invert-image",
+  },
+  {
+    id: "text-to-image",
+    label: "Text To Image",
+    icon: <PhotoIcon className="w-8 h-8" />,
+    href: "/text-to-image",
+  },
+  {
+    id: "image-to-pdf",
+    label: "Image To Pdf",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/image-to-pdf",
+  },
+  // Utility tools
+  {
+    id: "image-translator",
+    label: "Image Translator",
+    icon: <LanguageIcon className="w-8 h-8" />,
+    href: "/image-translator",
+  },
+  {
+    id: "qr-code-scanner",
+    label: "Qr Code Scanner",
+    icon: <QrCodeIcon className="w-8 h-8" />,
+    href: "/qr-scanner",
+  },
+  {
+    id: "word-to-pdf",
+    label: "Word To Pdf",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/word-to-pdf",
+  },
+  {
+    id: "pdf-to-jpg",
+    label: "Pdf To Jpg",
+    icon: <PhotoIcon className="w-8 h-8" />,
+    href: "/pdf-to-jpg",
+  },
+  // More PDF tools
+  {
+    id: "merge-pdf",
+    label: "Merge Pdf",
+    icon: <DocumentDuplicateIcon className="w-8 h-8" />,
+    href: "/merge-pdf",
+  },
+  {
+    id: "jpg-to-excel",
+    label: "Jpg To Excel",
+    icon: <TableCellsIcon className="w-8 h-8" />,
+    href: "/jpg-to-excel",
+  },
+  {
+    id: "qr-code-generator",
+    label: "Qr Code Generator",
+    icon: <QrCodeIcon className="w-8 h-8" />,
+    href: "/qr-generator",
+  },
+  {
+    id: "word-to-jpg",
+    label: "Word To Jpg",
+    icon: <PhotoIcon className="w-8 h-8" />,
+    href: "/word-to-jpg",
+  },
+  // Excel & CSV tools
+  {
+    id: "pdf-to-excel",
+    label: "Pdf To Excel",
+    icon: <TableCellsIcon className="w-8 h-8" />,
+    href: "/pdf-to-excel",
+  },
+  {
+    id: "barcode-scanner",
+    label: "Barcode Scanner",
+    icon: <QrCodeIcon className="w-8 h-8" />,
+    href: "/barcode-scanner",
+  },
+  {
+    id: "excel-to-jpg",
+    label: "Excel To Jpg",
+    icon: <PhotoIcon className="w-8 h-8" />,
+    href: "/excel-to-jpg",
+  },
+  {
+    id: "pdf-to-csv",
+    label: "Pdf To Csv",
+    icon: <TableCellsIcon className="w-8 h-8" />,
+    href: "/convert",
+  },
+  // HTML tools
+  {
+    id: "html-to-pdf",
+    label: "Html To Pdf",
+    icon: <CodeBracketIcon className="w-8 h-8" />,
+    href: "/html-to-pdf",
+  },
+  {
+    id: "pdf-to-html",
+    label: "Pdf To Html",
+    icon: <CodeBracketIcon className="w-8 h-8" />,
+    href: "/convert",
+  },
+  // Core app features
+  {
+    id: "resize-image",
+    label: "Resize Image",
+    icon: <ArrowsPointingOutIcon className="w-8 h-8" />,
+    href: "/resize",
+  },
+  {
+    id: "signature",
+    label: "Create Signature",
+    icon: <PencilSquareIcon className="w-8 h-8" />,
+    href: "/signature",
+  },
+  {
+    id: "upload",
+    label: "Upload Files",
+    icon: <ArrowUpTrayIcon className="w-8 h-8" />,
+    href: "/upload",
+  },
+];
+
+// Quick Actions Grid Component
+const QuickActionsGrid = ({
+  router,
+}: {
+  router: ReturnType<typeof useRouter>;
+}): JSX.Element => {
+  return (
+    <div className="mb-8">
+      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+        Quick Actions
+      </h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+        All your conversion tools in one place. Click to get started.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {featureCards.map(card => (
+          <motion.div
+            key={card.id}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => router.push(card.href)}
+            className="group cursor-pointer p-4 sm:p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-indigo-200 dark:hover:border-slate-600 transition-all duration-300"
+          >
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors duration-300">
+                <div className="text-indigo-600 dark:text-indigo-400">
+                  {card.icon}
+                </div>
+              </div>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
+                {card.label}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const DashboardContent = (): JSX.Element => {
   const { files, removeFile, isLoading } = useFileContext();
   const { currentUser } = useAuth();
@@ -156,16 +374,16 @@ const DashboardContent = (): JSX.Element => {
 
     if (activeTab === "images") {
       filtered = filtered.filter((file: FileObject) =>
-        file.type.startsWith("image/")
+        file.type.startsWith("image/"),
       );
     } else if (activeTab === "documents") {
       filtered = filtered.filter(
         (file: FileObject) =>
-          file.type.startsWith("application/") || file.type.startsWith("text/")
+          file.type.startsWith("application/") || file.type.startsWith("text/"),
       );
     } else if (activeTab === "signatures") {
       filtered = filtered.filter(
-        (file: FileObject) => file.isSignature === true
+        (file: FileObject) => file.isSignature === true,
       );
     } else if (activeTab === "processed") {
       filtered = filtered.filter((file: FileObject) => file.processed === true);
@@ -173,7 +391,7 @@ const DashboardContent = (): JSX.Element => {
 
     if (searchQuery.trim()) {
       filtered = filtered.filter((file: FileObject) =>
-        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+        file.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -257,7 +475,7 @@ const DashboardContent = (): JSX.Element => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-50 rounded-4xl dark:bg-slate-900 min-h-screen">
         <div className="mb-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Your Dashboard
+            Lets Converts
           </h2>
           <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-200">
             Welcome back &nbsp;
@@ -287,7 +505,9 @@ const DashboardContent = (): JSX.Element => {
             {/* Sort Controls */}
             <div className="flex items-center gap-3">
               <div className="relative min-w-[140px]">
-                <label htmlFor="sort-by" className="sr-only">Sort by</label>
+                <label htmlFor="sort-by" className="sr-only">
+                  Sort by
+                </label>
                 <select
                   id="sort-by"
                   value={sortBy}
@@ -504,7 +724,7 @@ const DashboardContent = (): JSX.Element => {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
-                            }
+                            },
                           )}
                         </p>
                       </div>
@@ -525,8 +745,8 @@ const DashboardContent = (): JSX.Element => {
                             onClick={() =>
                               router.push(
                                 `/sign-image?fileId=${encodeURIComponent(
-                                  file.id
-                                )}`
+                                  file.id,
+                                )}`,
                               )
                             }
                             className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 shadow-[0_4px_0_rgb(199,210,254)] active:shadow-none active:translate-y-1 transition-all dark:bg-slate-700 dark:text-indigo-300 dark:border-slate-600 dark:shadow-[0_4px_0_rgb(51,65,85)]"
@@ -554,6 +774,9 @@ const DashboardContent = (): JSX.Element => {
             </p>
           </>
         )}
+
+        {/* Quick Actions Grid - All conversion tools in one place */}
+        <QuickActionsGrid router={router} />
       </div>
     </PageTransition>
   );

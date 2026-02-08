@@ -23,7 +23,7 @@ const Animatedbutton: React.FC<AnimatedButtonProps> = ({
       transition={{ duration: 0.12, ease: "easeOut" }}
       className={clsx(
         "inline-flex items-center justify-center rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed",
-        className
+        className,
       )}
       disabled={disabled}
       {...rest}

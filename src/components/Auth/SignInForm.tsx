@@ -1,8 +1,8 @@
 "use client";
 import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 
-// defines Types
 interface FormData {
   email: string;
   password: string;
@@ -31,19 +31,16 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.FormEvent<HTMLFormElement>,
   ): Promise<void> => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      //validate inputs
       if (!formData.email || !formData.password) {
         throw new Error("Please fill in all fields");
       }
-
-      // Sign in the user
       await signIn(formData.email, formData.password);
     } catch (err) {
       const errorMessage =
@@ -51,100 +48,101 @@ const SignInForm: React.FC<SignInFormProps> = ({ onToggleForm }) => {
           ? err.message
           : "Sign in failed. Please try again.";
       setError(errorMessage);
-      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="p-8 rounded-lg shadow-lg max-w-md w-full mx-auto bg-blue-100">
-      <h2 className="text-2xl font-bold mb-6 text-center text-[#1a1b60]">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-sm">
+      <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">
         Welcome Back
       </h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-6">
+        Sign in to continue to ConvertSign
+      </p>
 
       {error && (
-        <div className="mb-4 p-3 text-sm rounded-md bg-red-400 text-white">
-          {error}
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center gap-2">
+          <AlertCircle size={16} className="text-red-500 shrink-0" />
+          <span className="text-sm text-red-600 dark:text-red-400">
+            {error}
+          </span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email Input */}
+        <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium mb-2 text-[#1a1b60] "
+            className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300"
           >
             Email
           </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-3 py-2  rounded-md focus:outline-[#1a1b60] focus:ring-2 bg-white text-[#1a1b60]"
-            placeholder="Enter your email"
-            required
-          />
+          <div className="relative">
+            <Mail
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl py-2.5 pl-10 pr-4 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-400"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
         </div>
 
-        <div className="mb-6">
+        {/* Password Input */}
+        <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium mb-2 text-[#1a1b60] "
+            className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300"
           >
             Password
           </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full px-3 py-2  rounded-md focus:outline-[#1a1b60] focus:ring-2 bg-white text-[#1a1b60]"
-            placeholder="Enter your password"
-            required
-          />
+          <div className="relative">
+            <Lock
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl py-2.5 pl-10 pr-4 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-400"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
         </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-2 px-4 rounded-md transition-colors mb-4"
-          style={{
-            backgroundColor: isLoading ? "#06923E" : "#1a1b60",
-            color: isLoading ? "#06923E" : "#ffffff",
-            cursor: isLoading ? "not-allowed" : "pointer",
-          }}
-          onMouseEnter={e => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#1a1b60";
-            }
-          }}
-          onMouseLeave={e => {
-            if (!isLoading) {
-              e.currentTarget.style.backgroundColor = "#1a1b60";
-            }
-          }}
+          className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-xl transition-colors"
         >
           {isLoading ? "Signing In..." : "Sign In"}
         </button>
       </form>
 
-      <div className="text-center text-sm ">
-        <span className="text-amber-400 font-semibold">
-          Don&apos;t have an account ?
+      {/* Toggle to Sign Up */}
+      <div className="mt-6 text-center text-sm">
+        <span className="text-slate-500 dark:text-slate-400">
+          Don&apos;t have an account?{" "}
         </span>
         <button
           type="button"
           onClick={onToggleForm}
-          className="font-medium transition-colors text-[#1a1b60] underline"
-          onMouseEnter={e => {
-            e.currentTarget.style.color = "#06923E";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = "#1a1b60";
-          }}
+          className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
         >
           Sign Up
         </button>

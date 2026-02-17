@@ -51,7 +51,7 @@ const FileConverter: React.FC = () => {
 
   // derived
   const selectedFiles: FileObject[] = files.filter((f: FileObject) =>
-    selectedFileIds.includes(f.id)
+    selectedFileIds.includes(f.id),
   );
   const primarySelectedFile: FileObject | null =
     selectedFiles.length > 0 ? selectedFiles[0] : null;
@@ -102,13 +102,13 @@ const FileConverter: React.FC = () => {
   };
 
   const availableFormats: FormatOption[] = getCommonTargetFormats(
-    selectedFiles.map(f => f.type)
+    selectedFiles.map(f => f.type),
   );
 
   // Generate PNG preview for a PDF using pdfjs-dist (client-side only)
   const generatePdfPreview = async (
     pdfBlob: Blob,
-    converted: FileObject
+    converted: FileObject,
   ): Promise<void> => {
     try {
       if (typeof window === "undefined") return;
@@ -121,7 +121,7 @@ const FileConverter: React.FC = () => {
       if (pdfjsAny.GlobalWorkerOptions) {
         pdfjsAny.GlobalWorkerOptions.workerSrc = new URL(
           "pdfjs-dist/build/pdf.worker.mjs",
-          import.meta.url
+          import.meta.url,
         ).toString();
       }
 
@@ -183,13 +183,13 @@ const FileConverter: React.FC = () => {
       prev =>
         prev.includes(fileId)
           ? prev.filter(id => id !== fileId) // unselect
-          : [...prev, fileId] // select
+          : [...prev, fileId], // select
     );
   };
 
   //handle format selection
   const handleFormatChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ): void => {
     setTargetFormat(e.target.value as FormatOption | "");
   };
@@ -241,7 +241,7 @@ const FileConverter: React.FC = () => {
 
   const updateJob = (jobId: string, patch: Partial<ConversionJob>) => {
     queueRef.current = queueRef.current.map(job =>
-      job.id === jobId ? { ...job, ...patch } : job
+      job.id === jobId ? { ...job, ...patch } : job,
     );
     syncQueueState();
   };
@@ -271,7 +271,7 @@ const FileConverter: React.FC = () => {
 
       formData.append(
         "file",
-        new File([sourceBlob], job.file.name, { type: job.file.type })
+        new File([sourceBlob], job.file.name, { type: job.file.type }),
       );
       formData.append("targetFormat", job.targetFormat);
 
@@ -292,13 +292,13 @@ const FileConverter: React.FC = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.error ||
-            `Conversion failed with status (${response.statusText})`
+            `Conversion failed with status (${response.statusText})`,
         );
       }
 
       if (!response.ok) {
         throw new Error(
-          `Conversion failed with status ${response.status} : ${response.statusText}`
+          `Conversion failed with status ${response.status} : ${response.statusText}`,
         );
       }
 
@@ -481,12 +481,90 @@ const FileConverter: React.FC = () => {
               No files available for conversion.
             </p>
 
-            <Animatedbutton
-              onClick={() => router.push("/upload")}
-              className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base  transition-colors duration-200"
+            <div
+              className={`mx-4 sm:mx-8 p-6 border-2 border-dashed rounded-xl transition-all duration-300 ${"border-slate-300 hover:border-indigo-400 bg-slate-50"}`}
+              onDragOver={e => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={async e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const fileList = e.dataTransfer.files;
+                if (!fileList?.length) return;
+                for (let i = 0; i < fileList.length; i++) {
+                  const file = fileList[i];
+                  if (file.size > 10 * 1024 * 1024) {
+                    showToast(
+                      `${file.name}: File too large (max 10MB)`,
+                      "error",
+                    );
+                    continue;
+                  }
+                  const objectUrl = URL.createObjectURL(file);
+                  addFile({
+                    id: `${Date.now()}-${i}`,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: objectUrl,
+                    dateAdded: new Date().toISOString(),
+                    processed: false,
+                    isSignature: false,
+                    blob: file,
+                  });
+                }
+                showToast(`Uploaded ${fileList.length} file(s)`, "success");
+              }}
             >
-              Upload to Convert
-            </Animatedbutton>
+              <p className="text-sm text-slate-600 mb-3">
+                <span className="text-indigo-600 font-semibold">
+                  Drag & drop
+                </span>{" "}
+                files here or click below
+              </p>
+              <Animatedbutton
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.multiple = true;
+                  input.accept =
+                    "image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv";
+                  input.onchange = async e => {
+                    const fileList = (e.target as HTMLInputElement).files;
+                    if (!fileList?.length) return;
+                    for (let i = 0; i < fileList.length; i++) {
+                      const file = fileList[i];
+                      if (file.size > 10 * 1024 * 1024) {
+                        showToast(
+                          `${file.name}: File too large (max 10MB)`,
+                          "error",
+                        );
+                        continue;
+                      }
+                      const objectUrl = URL.createObjectURL(file);
+                      addFile({
+                        id: `${Date.now()}-${i}`,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        url: objectUrl,
+                        dateAdded: new Date().toISOString(),
+                        processed: false,
+                        isSignature: false,
+                        blob: file,
+                      });
+                    }
+                    showToast(`Uploaded ${fileList.length} file(s)`, "success");
+                  };
+                  input.click();
+                }}
+                className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base transition-colors duration-200"
+              >
+                Upload Files to Convert
+              </Animatedbutton>
+              <p className="text-xs text-slate-400 mt-2">Max 10MB per file</p>
+            </div>
           </div>
         ) : (
           // 🔹 Normal 2-column layout
@@ -622,7 +700,7 @@ const FileConverter: React.FC = () => {
                           <p className="text-xs text-gray-900 mt-1">
                             Original format:{" "}
                             {getOriginalFormat(
-                              primarySelectedFile
+                              primarySelectedFile,
                             ).toUpperCase()}
                           </p>
                         )}

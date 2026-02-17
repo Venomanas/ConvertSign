@@ -1,6 +1,13 @@
 "use client";
 
-import React, { JSX, useState, useEffect } from "react";
+import React, {
+  JSX,
+  useState,
+  useEffect,
+  useRef,
+  DragEvent,
+  ChangeEvent,
+} from "react";
 import Image from "next/image";
 import {
   PhotoIcon,
@@ -284,12 +291,6 @@ const featureCards: FeatureCard[] = [
     icon: <PencilSquareIcon className="w-8 h-8" />,
     href: "/signature",
   },
-  {
-    id: "upload",
-    label: "Upload Files",
-    icon: <ArrowUpTrayIcon className="w-8 h-8" />,
-    href: "/upload",
-  },
 ];
 
 // Quick Actions Grid Component
@@ -300,7 +301,7 @@ const QuickActionsGrid = ({
 }): JSX.Element => {
   return (
     <div className="mb-8">
-      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 mt-5">
         Quick Actions
       </h3>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
@@ -473,17 +474,10 @@ const DashboardContent = (): JSX.Element => {
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-slate-50 rounded-4xl dark:bg-slate-900 min-h-screen">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Lets Converts
+            Explore
           </h2>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-200">
-            Welcome back &nbsp;
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {currentUser.displayName ?? currentUser.email ?? "User"}
-            </span>{" "}
-            !
-          </p>
         </div>
 
         {/* Search and Filter Controls */}

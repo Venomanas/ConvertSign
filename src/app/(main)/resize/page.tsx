@@ -44,7 +44,7 @@ const ResizePage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [customFileName, setCustomFileName] = useState<string>("");
   const [selectedPresetRatio, setSelectedPresetRatio] = useState<number | null>(
-    null
+    null,
   );
   const [selectedSizePreset, setSelectedSizePreset] = useState<number>(3);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -202,7 +202,7 @@ const ResizePage: React.FC = () => {
       const preset = SIZE_PRESETS[selectedSizePreset];
       const resizedBase64 = canvasRef.current.toDataURL(
         "image/png",
-        preset.quality
+        preset.quality,
       );
 
       const cleanFileName = customFileName.trim().replace(/\.png$/i, "");
@@ -280,12 +280,103 @@ const ResizePage: React.FC = () => {
             <p className="text-gray-600 mb-4 px-4">
               No images available to resize.
             </p>
-            <AnimatedButton
-              onClick={() => router.push("/upload")}
-              className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base"
+
+            <div
+              className="mx-4 sm:mx-8 p-6 border-2 border-dashed rounded-xl transition-all duration-300 border-slate-300 hover:border-indigo-400 bg-slate-50"
+              onDragOver={e => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={async e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const fileList = e.dataTransfer.files;
+                if (!fileList?.length) return;
+                let count = 0;
+                for (let i = 0; i < fileList.length; i++) {
+                  const file = fileList[i];
+                  if (!file.type.startsWith("image/")) {
+                    showToast(
+                      `${file.name}: Only images are supported`,
+                      "error",
+                    );
+                    continue;
+                  }
+                  if (file.size > 10 * 1024 * 1024) {
+                    showToast(
+                      `${file.name}: File too large (max 10MB)`,
+                      "error",
+                    );
+                    continue;
+                  }
+                  const objectUrl = URL.createObjectURL(file);
+                  addFile({
+                    id: `${Date.now()}-${i}`,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: objectUrl,
+                    dateAdded: new Date().toISOString(),
+                    processed: false,
+                    isSignature: false,
+                    blob: file,
+                  });
+                  count++;
+                }
+                if (count > 0)
+                  showToast(`Uploaded ${count} image(s)`, "success");
+              }}
             >
-              Upload Images
-            </AnimatedButton>
+              <p className="text-sm text-slate-600 mb-3">
+                <span className="text-indigo-600 font-semibold">
+                  Drag & drop
+                </span>{" "}
+                images here or click below
+              </p>
+              <AnimatedButton
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.multiple = true;
+                  input.accept = "image/*";
+                  input.onchange = async e => {
+                    const fileList = (e.target as HTMLInputElement).files;
+                    if (!fileList?.length) return;
+                    let count = 0;
+                    for (let i = 0; i < fileList.length; i++) {
+                      const file = fileList[i];
+                      if (file.size > 10 * 1024 * 1024) {
+                        showToast(
+                          `${file.name}: File too large (max 10MB)`,
+                          "error",
+                        );
+                        continue;
+                      }
+                      const objectUrl = URL.createObjectURL(file);
+                      addFile({
+                        id: `${Date.now()}-${i}`,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        url: objectUrl,
+                        dateAdded: new Date().toISOString(),
+                        processed: false,
+                        isSignature: false,
+                        blob: file,
+                      });
+                      count++;
+                    }
+                    if (count > 0)
+                      showToast(`Uploaded ${count} image(s)`, "success");
+                  };
+                  input.click();
+                }}
+                className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm sm:text-base transition-colors"
+              >
+                Upload Images to Resize
+              </AnimatedButton>
+              <p className="text-xs text-slate-400 mt-2">Max 10MB per file</p>
+            </div>
           </div>
         ) : (
           <motion.div

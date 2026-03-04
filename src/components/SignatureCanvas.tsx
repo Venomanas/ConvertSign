@@ -37,6 +37,9 @@ const FONT_OPTIONS = [
   { label: "Elegant", css: "'Great Vibes', cursive" },
   { label: "Bold", css: "'Caveat', cursive" },
   { label: "Classic", css: "Georgia, serif" },
+  { label: "Script", css: "'Pacifico', cursive" },
+  { label: "Monoline", css: "'Satisfy', cursive" },
+  { label: "Print", css: "'Roboto', sans-serif" },
 ];
 
 const BG_OPTIONS = [
@@ -65,6 +68,7 @@ const SignatureCanvas: React.FC = () => {
   // Typed mode state
   const [typedText, setTypedText] = useState("");
   const [selectedFont, setSelectedFont] = useState(FONT_OPTIONS[0].css);
+  const [showDateStamp, setShowDateStamp] = useState(false);
 
   const { addFile, files } = useFileContext();
   const { showToast } = useToast();
@@ -173,14 +177,31 @@ const SignatureCanvas: React.FC = () => {
     const h = parseInt(canvas.style.height);
     drawBackground(ctx, w, h);
     if (typedText) {
-      ctx.font = `${Math.max(36, Math.min(64, (w / Math.max(typedText.length, 1)) * 1.5))}px ${selectedFont}`;
+      const fontSize = Math.max(
+        36,
+        Math.min(64, (w / Math.max(typedText.length, 1)) * 1.5),
+      );
+      ctx.font = `${fontSize}px ${selectedFont}`;
       ctx.fillStyle = penColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(typedText, w / 2, h / 2);
+      const textY = showDateStamp ? h / 2 - 18 : h / 2;
+      ctx.fillText(typedText, w / 2, textY);
+      if (showDateStamp) {
+        const stamp = new Date().toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        ctx.font = `14px 'Roboto', sans-serif`;
+        ctx.fillStyle = penColor;
+        ctx.globalAlpha = 0.6;
+        ctx.fillText(stamp, w / 2, textY + fontSize / 2 + 18);
+        ctx.globalAlpha = 1;
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typedText, selectedFont, penColor, mode, bgStyle]);
+  }, [typedText, selectedFont, penColor, mode, bgStyle, showDateStamp]);
 
   const redrawStrokes = (
     ctx: CanvasRenderingContext2D,
@@ -630,6 +651,27 @@ const SignatureCanvas: React.FC = () => {
                       {f.label}
                     </Animatedbutton>
                   ))}
+                </div>
+                {/* Date Stamp toggle */}
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDateStamp(s => !s)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                      showDateStamp
+                        ? "bg-indigo-600"
+                        : "bg-slate-300 dark:bg-slate-600"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform ${
+                        showDateStamp ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                    Add date stamp
+                  </span>
                 </div>
               </div>
             )}

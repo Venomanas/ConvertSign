@@ -18,9 +18,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ConvertSign — Document Signing & Conversion",
+  title: {
+    default: "ConvertSign — Free Document & Image Tools",
+    template: "%s | ConvertSign",
+  },
   description:
-    "Convert, sign and manage your digital documents with ease. Free in-browser tools — PDF, image, signature, QR code and more.",
+    "Convert, sign and manage your digital documents with ease. 30+ free in-browser tools — PDF, image, signature, QR code and more. No upload, fully private.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -29,7 +32,43 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: "/icon-192.png",
+    icon: "/icon-192.png",
   },
+  openGraph: {
+    type: "website",
+    siteName: "ConvertSign",
+    title: "ConvertSign — 30+ Free Document & Image Tools",
+    description:
+      "Convert PDFs, remove backgrounds, sign documents, compress files and more — all in-browser, no upload, completely free.",
+    url: "https://convertsign.vercel.app",
+    images: [
+      {
+        url: "https://convertsign.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ConvertSign — Free Document & Image Tools",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ConvertSign — 30+ Free Document & Image Tools",
+    description:
+      "PDF, image, signature, QR tools — all free, in-browser, no upload needed.",
+    images: ["https://convertsign.vercel.app/og-image.png"],
+    creator: "@VeNOmAnas1",
+  },
+  keywords: [
+    "PDF converter",
+    "background remover",
+    "digital signature",
+    "image compressor",
+    "PDF compress",
+    "QR code generator",
+    "free online tools",
+    "in-browser tools",
+    "no upload PDF",
+  ],
 };
 
 export const viewport = {

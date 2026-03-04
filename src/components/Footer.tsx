@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
+import Link from "next/link";
+import { FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
 
 type Social = {
   name: string;
@@ -21,34 +22,32 @@ const socials: Social[] = [
     href: "https://www.instagram.com/anas._.sayyed",
     icon: FaInstagram,
   },
+  {
+    name: "Twitter",
+    href: "https://x.com/VeNOmAnas1",
+    icon: FaTwitter,
+  },
 ];
 
 const Footer: React.FC = () => {
   return (
     <footer className="bg-slate-900 dark:bg-gray-900/50 border-t border-slate-200/10 dark:border-gray-800/50 text-slate-200 dark:text-slate-300">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* 🔹 Stack on mobile, row on larger screens */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Left side: copy text */}
-          <p className="text-xs sm:text-sm text-center sm:text-left">
-            &copy; {new Date().getFullYear()}{" "}
-            <span className="font-semibold">ConvertSign</span>, created by{" "}
-            <a
-              href="https://github.com/Venomanas"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-300 hover:text-indigo-200 underline-offset-2 hover:underline"
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Top row: brand + quick links + socials */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-6">
+          {/* Brand */}
+          <div>
+            <Link
+              href="/dashboard"
+              className="text-lg font-bold text-white hover:text-indigo-300 transition-colors"
             >
-              Anas Sayyed
-            </a>
-            .
-          </p>
+              ConvertSign
+            </Link>
+        
+          </div>
 
-          {/* Right side: socials */}
-          <nav
-            aria-label="Social links"
-            className="flex justify-center sm:justify-end"
-          >
+          {/* Socials */}
+          <nav aria-label="Social links">
             <ul className="flex items-center gap-3">
               {socials.map(s => {
                 const Icon = s.icon;
@@ -69,6 +68,24 @@ const Footer: React.FC = () => {
               })}
             </ul>
           </nav>
+        </div>
+
+        {/* Bottom copyright */}
+        <div className="border-t border-slate-700/50 pt-4">
+          <p className="text-xs text-slate-500 text-center sm:text-left">
+            &copy; {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-slate-400">ConvertSign</span>,
+            created by{" "}
+            <a
+              href="https://github.com/Venomanas"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-400 hover:text-indigo-300 underline-offset-2 hover:underline"
+            >
+              Anas Sayyed
+            </a>
+            . All tools run in your browser.
+          </p>
         </div>
       </div>
     </footer>

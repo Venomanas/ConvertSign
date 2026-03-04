@@ -37,6 +37,7 @@ import {
   FolderOpenIcon,
   ClockIcon,
   SparklesIcon,
+  BugAntIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileContext } from "@/context/FileContext";
@@ -48,6 +49,9 @@ import { useToast } from "@/context/ToastContext";
 import PageTransition from "@/components/PageTransition";
 import Animatedbutton from "@/components/Animatedbutton";
 import { useSound } from "@/hooks/useSound";
+import { PiIcon } from "lucide-react";
+import { FcRemoveImage } from "react-icons/fc";
+import { CgRemoveR } from "react-icons/cg";
 
 // Helper function to format bytes
 const formatBytes = (bytes: number, decimals: number = 2) => {
@@ -150,6 +154,13 @@ interface FeatureCard {
 }
 
 const featureCards: FeatureCard[] = [
+  {
+    id: "background-remover",
+    label: "Background Remover",
+    icon: <CgRemoveR className="w-8 h-8" />,
+    href: "/background-remover",
+    description: "Remove image background instantly",
+  },
   {
     id: "image-to-text",
     label: "Image To Text",

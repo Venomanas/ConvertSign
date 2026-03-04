@@ -1,0 +1,43 @@
+{
+  "name": "ConvertSign",
+  "short_name": "ConvertSign",
+  "description": "Convert, sign and manage your digital documents with ease — fully in-browser.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Upload File",
+      "url": "/upload",
+      "description": "Upload a file to convert or sign"
+    },
+    {
+      "name": "Create Signature",
+      "url": "/signature",
+      "description": "Draw or type your signature"
+    },
+    {
+      "name": "Remove Background",
+      "url": "/background-remover",
+      "description": "Remove image backgrounds instantly"
+    }
+  ]
+}

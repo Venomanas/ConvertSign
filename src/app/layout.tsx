@@ -5,6 +5,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { FileProvider } from "@/context/FileContext";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import RegisterSW from "@/components/RegisterSW";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,16 +18,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ConvertSign - Document Signing and Conversion",
-  description: "Convert, Sign and manage your Digital documents with ease",
- 
+  title: "ConvertSign — Document Signing & Conversion",
+  description:
+    "Convert, sign and manage your digital documents with ease. Free in-browser tools — PDF, image, signature, QR code and more.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ConvertSign",
+  },
+  icons: {
+    apple: "/icon-192.png",
+  },
 };
 
-export const  viewport ={
-    width: "device-width",
-    initialScale: 1,
-  }
-
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default function RootLayout({
   children,
@@ -35,7 +44,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <head>
+        <meta name="theme-color" content="#6366f1" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -48,6 +61,7 @@ export default function RootLayout({
             </FileProvider>
           </AuthProvider>
         </ThemeProvider>
+        <RegisterSW />
       </body>
     </html>
   );

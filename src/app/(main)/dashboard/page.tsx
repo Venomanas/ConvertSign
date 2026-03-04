@@ -162,6 +162,20 @@ const featureCards: FeatureCard[] = [
     description: "Remove image background instantly",
   },
   {
+    id: "pdf-compress",
+    label: "PDF Compressor",
+    icon: <DocumentIcon className="w-8 h-8" />,
+    href: "/pdf-compress",
+    description: "Reduce PDF file size",
+  },
+  {
+    id: "image-compressor",
+    label: "Image Compressor",
+    icon: <PhotoIcon className="w-8 h-8" />,
+    href: "/image-compressor",
+    description: "Compress images with quality control",
+  },
+  {
     id: "image-to-text",
     label: "Image To Text",
     icon: <DocumentTextIcon className="w-8 h-8" />,

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import React, { useState } from "react";
-import ThemeToggleButton from "./ui/theme-toggle-button"; // Assuming this is the correct path
+import React, { useState, useEffect } from "react";
+import ThemeToggleButton from "./ui/theme-toggle-button";
 import Animatedbutton from "./Animatedbutton";
 import PageTransition from "./PageTransition";
+import { getSoundsEnabled, setSoundsEnabled, useSound } from "@/hooks/useSound";
+import { SpeakerWaveIcon, SpeakerXMarkIcon } from "@heroicons/react/24/outline";
 
 // Define the navigation items with paths
 const navItems = [
@@ -17,7 +19,6 @@ const navItems = [
   { href: "/signature", label: "Signature" },
 ];
 
-// Define a separate prop type for the component
 interface HeaderProps {
   onProfileClick: () => void;
 }
@@ -25,7 +26,20 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
   const { currentUser, userProfile } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const pathname = usePathname(); // Get the current URL path
+  const pathname = usePathname();
+  const [soundsOn, setSoundsOn] = useState(true);
+  const { play } = useSound();
+
+  // Sync with stored preference on mount
+  useEffect(() => {
+    setSoundsOn(getSoundsEnabled());
+  }, []);
+
+  const toggleSounds = () => {
+    const next = !soundsOn;
+    setSoundsOn(next);
+    setSoundsEnabled(next);
+  };
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
@@ -55,7 +69,8 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`px-4 py-2 rounded-md  transition-all duration-200 ${
+                    onClick={() => play("tab")}
+                    className={`px-4 py-2 rounded-md transition-all duration-200 ${
                       isActive
                         ? "bg-sky-50 text-indigo-600 shadow-sm"
                         : "text-blue-100 hover:text-white hover:bg-white/10"
@@ -68,10 +83,27 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
             </nav>
 
             {/* Right side icons & Mobile Menu button */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {/* Sound Toggle */}
+              <Animatedbutton
+                onClick={toggleSounds}
+                soundType={null}
+                className="p-2 rounded-lg text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+                title={soundsOn ? "Mute sounds" : "Enable sounds"}
+                aria-label={soundsOn ? "Mute sounds" : "Enable sounds"}
+              >
+                {soundsOn ? (
+                  <SpeakerWaveIcon className="w-5 h-5" />
+                ) : (
+                  <SpeakerXMarkIcon className="w-5 h-5 text-slate-500" />
+                )}
+              </Animatedbutton>
+
               <ThemeToggleButton />
+
               <Animatedbutton
                 onClick={onProfileClick}
+                soundType="click"
                 className="hidden lg:flex items-center justify-center bg-sky-50 rounded-full h-9 w-9 text-indigo-600 hover:bg-indigo-200 transition-colors duration-200 shadow-sm"
                 title="User Profile"
               >
@@ -81,6 +113,7 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
               {/* Mobile Menu Button */}
               <Animatedbutton
                 onClick={toggleMobileMenu}
+                soundType="toggle"
                 className="lg:hidden p-2 rounded-md text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
                 aria-label="Toggle menu"
               >
@@ -116,8 +149,11 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={` px-4 py-3 rounded-md text-base  transition-all duration-200 ${
+                    onClick={() => {
+                      play("tab");
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`px-4 py-3 rounded-md text-base transition-all duration-200 ${
                       isActive
                         ? "bg-indigo-50 text-indigo-600 shadow-sm"
                         : "text-indigo-100 hover:text-white hover:bg-white/10"
@@ -132,6 +168,7 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                   onProfileClick();
                   setIsMobileMenuOpen(false);
                 }}
+                soundType="click"
                 className="text-left px-4 py-3 rounded-md text-base font-medium text-blue-100 hover:text-white hover:bg-white/10"
               >
                 Profile

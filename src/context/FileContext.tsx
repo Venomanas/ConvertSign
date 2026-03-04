@@ -140,8 +140,8 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
   const updateFile = (fileId: string, updates: Partial<FileObject>): void => {
     setFiles(prevFiles =>
       prevFiles.map(file =>
-        file.id === fileId ? { ...file, ...updates } : file
-      )
+        file.id === fileId ? { ...file, ...updates } : file,
+      ),
     );
   };
 
@@ -203,9 +203,14 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
     addFile(resizedFile);
   };
 
+  const addFiles = (newFiles: FileObject[]): void => {
+    newFiles.forEach(f => addFile(f));
+  };
+
   const contextValue: FileContextType = {
     files,
     addFile,
+    addFiles,
     isLoading,
     updateFile,
     getFile,
@@ -214,9 +219,6 @@ export const FileProvider: React.FC<FileProviderProps> = ({ children }) => {
     updateResizedImage,
     selectedFile,
     setSelectedFile,
-    addFiles: function (): void {
-      throw new Error("Function not implemented.");
-    }
   };
 
   return (

@@ -7,8 +7,16 @@ import Image from "next/image";
 import { FileObject } from "@/utils/authUtils";
 import DownloadSignature from "@/components/DownloadSignature";
 import { useToast } from "@/context/ToastContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Animatedbutton from "./Animatedbutton";
+import { useSound } from "@/hooks/useSound";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  ArrowDownTrayIcon,
+  ArrowUturnLeftIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 interface ColorOption {
   label: string;
@@ -22,11 +30,27 @@ interface SizeOption {
 
 type Point = { x: number; y: number };
 type Stroke = { points: Point[]; color: string; width: number };
+type SignMode = "draw" | "type";
+
+const FONT_OPTIONS = [
+  { label: "Cursive", css: "'Dancing Script', cursive" },
+  { label: "Elegant", css: "'Great Vibes', cursive" },
+  { label: "Bold", css: "'Caveat', cursive" },
+  { label: "Classic", css: "Georgia, serif" },
+];
+
+const BG_OPTIONS = [
+  { label: "Clear", value: "transparent" },
+  { label: "White", value: "#ffffff" },
+  { label: "Lined", value: "lined" },
+  { label: "Grid", value: "grid" },
+];
 
 const SignatureCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const [mode, setMode] = useState<SignMode>("draw");
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [penColor, setPenColor] = useState<string>("#000000");
   const [penSize, setPenSize] = useState<number>(2);
@@ -36,9 +60,18 @@ const SignatureCanvas: React.FC = () => {
   const [signatureName, setSignatureName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [hasDrawn, setHasDrawn] = useState(false);
+  const [bgStyle, setBgStyle] = useState("transparent");
 
-  const { addFile } = useFileContext();
+  // Typed mode state
+  const [typedText, setTypedText] = useState("");
+  const [selectedFont, setSelectedFont] = useState(FONT_OPTIONS[0].css);
+
+  const { addFile, files } = useFileContext();
   const { showToast } = useToast();
+  const { play } = useSound();
+
+  // Saved signatures list
+  const savedSignatures = files.filter(f => f.isSignature);
 
   // Available colors for the signature pen
   const availableColors: ColorOption[] = [
@@ -50,11 +83,55 @@ const SignatureCanvas: React.FC = () => {
 
   // Available pen sizes
   const availableSizes: SizeOption[] = [
-    { label: "Small", value: 1 },
-    { label: "Medium", value: 2 },
-    { label: "Large", value: 3 },
-    { label: "Extra Large", value: 4 },
+    { label: "S", value: 1 },
+    { label: "M", value: 2 },
+    { label: "L", value: 3 },
+    { label: "XL", value: 4 },
   ];
+
+  // Draw background pattern on canvas
+  const drawBackground = (
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ) => {
+    ctx.clearRect(0, 0, w, h);
+    if (bgStyle === "white" || bgStyle === "#ffffff") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+    } else if (bgStyle === "lined") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      const spacing = 30;
+      for (let y = spacing; y < h; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+    } else if (bgStyle === "grid") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      const spacing = 24;
+      for (let x = 0; x < w; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+    }
+    // transparent = no fill, will save with alpha channel
+  };
 
   // Resize canvas to container and redraw strokes
   useEffect(() => {
@@ -75,21 +152,40 @@ const SignatureCanvas: React.FC = () => {
       if (!ctx) return;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawBackground(ctx, rect.width, rect.height || 300);
       redrawStrokes(ctx, strokes);
     };
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     return () => window.removeEventListener("resize", resizeCanvas);
-  }, [strokes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strokes, bgStyle]);
+
+  // Re-render typed text preview on canvas
+  useEffect(() => {
+    if (mode !== "type") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const w = parseInt(canvas.style.width);
+    const h = parseInt(canvas.style.height);
+    drawBackground(ctx, w, h);
+    if (typedText) {
+      ctx.font = `${Math.max(36, Math.min(64, (w / Math.max(typedText.length, 1)) * 1.5))}px ${selectedFont}`;
+      ctx.fillStyle = penColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(typedText, w / 2, h / 2);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typedText, selectedFont, penColor, mode, bgStyle]);
 
   const redrawStrokes = (
     ctx: CanvasRenderingContext2D,
-    allStrokes: Stroke[]
+    allStrokes: Stroke[],
   ) => {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    // transparent background → good for overlaying on docs
     allStrokes.forEach(stroke => {
       if (stroke.points.length < 2) return;
       ctx.strokeStyle = stroke.color;
@@ -110,32 +206,24 @@ const SignatureCanvas: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-    };
+    return { x: clientX - rect.left, y: clientY - rect.top };
   };
 
   // Mouse events
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>): void => {
     e.preventDefault();
+    if (mode !== "draw") return;
     const point = getCanvasPos(e.clientX, e.clientY);
-    const newStroke: Stroke = {
-      points: [point],
-      color: penColor,
-      width: penSize * 2,
-    };
-    setCurrentStroke(newStroke);
+    setCurrentStroke({ points: [point], color: penColor, width: penSize * 2 });
     setIsDrawing(true);
     setHasDrawn(true);
     setError("");
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>): void => {
-    if (!isDrawing || !currentStroke) return;
-
+    if (!isDrawing || !currentStroke || mode !== "draw") return;
     const point = getCanvasPos(e.clientX, e.clientY);
-    const updatedStroke: Stroke = {
+    const updatedStroke = {
       ...currentStroke,
       points: [...currentStroke.points, point],
     };
@@ -144,7 +232,9 @@ const SignatureCanvas: React.FC = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-
+    const w = parseInt(canvas.style.width);
+    const h = parseInt(canvas.style.height);
+    drawBackground(ctx, w, h);
     redrawStrokes(ctx, [...strokes, updatedStroke]);
   };
 
@@ -159,15 +249,11 @@ const SignatureCanvas: React.FC = () => {
   // Touch events
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>): void => {
     e.preventDefault();
+    if (mode !== "draw") return;
     const touch = e.touches[0];
     if (!touch) return;
     const point = getCanvasPos(touch.clientX, touch.clientY);
-    const newStroke: Stroke = {
-      points: [point],
-      color: penColor,
-      width: penSize * 2,
-    };
-    setCurrentStroke(newStroke);
+    setCurrentStroke({ points: [point], color: penColor, width: penSize * 2 });
     setIsDrawing(true);
     setHasDrawn(true);
     setError("");
@@ -175,11 +261,11 @@ const SignatureCanvas: React.FC = () => {
 
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>): void => {
     e.preventDefault();
-    if (!isDrawing || !currentStroke) return;
+    if (!isDrawing || !currentStroke || mode !== "draw") return;
     const touch = e.touches[0];
     if (!touch) return;
     const point = getCanvasPos(touch.clientX, touch.clientY);
-    const updatedStroke: Stroke = {
+    const updatedStroke = {
       ...currentStroke,
       points: [...currentStroke.points, point],
     };
@@ -188,7 +274,9 @@ const SignatureCanvas: React.FC = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-
+    const w = parseInt(canvas.style.width);
+    const h = parseInt(canvas.style.height);
+    drawBackground(ctx, w, h);
     redrawStrokes(ctx, [...strokes, updatedStroke]);
   };
 
@@ -202,24 +290,14 @@ const SignatureCanvas: React.FC = () => {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const w = parseInt(canvas.style.width);
+    const h = parseInt(canvas.style.height);
+    drawBackground(ctx, w, h);
     setStrokes([]);
     setCurrentStroke(null);
     setHasDrawn(false);
+    setTypedText("");
     setError("");
-  };
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSignatureName(e.target.value);
-  };
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setPenColor(e.target.value);
-  };
-
-  const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setPenSize(parseInt(e.target.value) || 2);
   };
 
   const handleUndo = (): void => {
@@ -229,11 +307,12 @@ const SignatureCanvas: React.FC = () => {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
       if (canvas && ctx) {
+        const w = parseInt(canvas.style.width);
+        const h = parseInt(canvas.style.height);
+        drawBackground(ctx, w, h);
         redrawStrokes(ctx, updated);
       }
-      if (updated.length === 0) {
-        setHasDrawn(false);
-      }
+      if (updated.length === 0) setHasDrawn(false);
       return updated;
     });
   };
@@ -242,9 +321,16 @@ const SignatureCanvas: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (!hasDrawn) {
-      setError("Please draw a signature before saving.");
-      showToast("Draw a signature first", "info");
+    const isTypedEmpty = mode === "type" && !typedText.trim();
+    const isDrawEmpty = mode === "draw" && !hasDrawn;
+
+    if (isDrawEmpty || isTypedEmpty) {
+      const msg =
+        mode === "type"
+          ? "Type your name to create a signature."
+          : "Please draw a signature before saving.";
+      setError(msg);
+      showToast(msg, "info");
       return;
     }
 
@@ -256,8 +342,7 @@ const SignatureCanvas: React.FC = () => {
 
     try {
       setIsSaving(true);
-      const dataUrl = canvas.toDataURL("image/png"); // transparent PNG
-
+      const dataUrl = canvas.toDataURL("image/png");
       const res = await fetch(dataUrl);
       const blob = await res.blob();
 
@@ -274,7 +359,7 @@ const SignatureCanvas: React.FC = () => {
         dateAdded: new Date().toISOString(),
         isSignature: true,
         processed: true,
-        blob, // for IndexedDB persistence
+        blob,
       };
 
       addFile(fileData);
@@ -292,27 +377,63 @@ const SignatureCanvas: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-slate-300">
-        Create Signature
-      </h2>
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
+          <PencilSquareIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-200">
+          Create Signature
+        </h2>
+      </div>
+
+      {/* Mode Switcher */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
+          {(["draw", "type"] as SignMode[]).map(m => (
+            <Animatedbutton
+              key={m}
+              onClick={() => {
+                setMode(m);
+                clearCanvas();
+                setError("");
+              }}
+              soundType="toggle"
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                mode === m
+                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              }`}
+            >
+              {m === "draw" ? "✏️ Draw" : "⌨️ Type"}
+            </Animatedbutton>
+          ))}
+        </div>
+      </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Canvas Area */}
-        <div className="md:col-span-2 bg-white p-4 rounded-lg shadow-md">
-          <div
-            ref={containerRef}
-            className="bg-gray-100 border-2 border-slate-400"
-          >
-            <motion.div
+        <div className="md:col-span-2 space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+            {/* Canvas */}
+            <div
               ref={containerRef}
-              className="bg-gray-100 border-2 border-slate-400"
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className={`relative rounded-xl border-2 border-dashed overflow-hidden ${
+                bgStyle === "transparent"
+                  ? "border-slate-300 dark:border-slate-600"
+                  : "border-slate-200 dark:border-slate-600"
+              }`}
+              style={{
+                background:
+                  bgStyle === "transparent"
+                    ? "repeating-conic-gradient(#e2e8f0 0% 25%, white 0% 50%) 0 0 / 16px 16px"
+                    : "",
+              }}
             >
               <canvas
                 ref={canvasRef}
-                className="w-full h-64 md:h-80 touch-none cursor-crosshair"
+                className="w-full h-64 md:h-72 touch-none cursor-crosshair"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={endDrawing}
@@ -321,154 +442,310 @@ const SignatureCanvas: React.FC = () => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               />
-            </motion.div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-2 p-2 bg-red-50 text-red-700 rounded-md">
-              {error}
+              {/* Placeholder hint overlaid on empty canvas */}
+              {!hasDrawn && typedText === "" && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <p className="text-slate-300 dark:text-slate-600 text-sm font-medium select-none">
+                    {mode === "draw"
+                      ? "Draw your signature here…"
+                      : "Type your name below to preview"}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
-          <div className="mb-4 mt-4">
-            <label
-              htmlFor="signatureName"
-              className="block text-lg font-semibold mb-4 text-black"
-            >
-              Name Your Signature
-            </label>
-            <input
-              type="text"
-              value={signatureName}
-              onChange={handleNameChange}
-              placeholder="e.g. My Signature"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-            />
+            {/* Type mode input */}
+            <AnimatePresence>
+              {mode === "type" && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-3"
+                >
+                  <input
+                    type="text"
+                    value={typedText}
+                    onChange={e => setTypedText(e.target.value)}
+                    placeholder="e.g. John Doe"
+                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    style={{ fontFamily: selectedFont, fontSize: "1.3rem" }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm">
+                <XMarkIcon className="w-4 h-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Name field */}
+            <div className="mt-4">
+              <label
+                htmlFor="signatureName"
+                className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300"
+              >
+                Signature Name
+              </label>
+              <input
+                id="signatureName"
+                type="text"
+                value={signatureName}
+                onChange={e => setSignatureName(e.target.value)}
+                placeholder="e.g. My Signature"
+                className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              />
+            </div>
+
+            {/* Canvas Controls */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {mode === "draw" && (
+                <>
+                  <Animatedbutton
+                    onClick={clearCanvas}
+                    soundType="clear"
+                    className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5"
+                  >
+                    <XMarkIcon className="w-4 h-4" /> Clear
+                  </Animatedbutton>
+                  <Animatedbutton
+                    onClick={handleUndo}
+                    disabled={strokes.length === 0}
+                    soundType="deselect"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                      strokes.length === 0
+                        ? "bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                        : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+                    }`}
+                  >
+                    <ArrowUturnLeftIcon className="w-4 h-4" /> Undo
+                  </Animatedbutton>
+                </>
+              )}
+              <Animatedbutton
+                onClick={saveSignature}
+                disabled={isSaving}
+                soundType="save"
+                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold transition-colors shadow-sm shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2"
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+                {isSaving ? "Saving…" : "Save Signature"}
+              </Animatedbutton>
+            </div>
+
+            <DownloadSignature />
           </div>
-
-          {/* Canvas Controls */}
-          <div className="mt-4 flex flex-wrap gap-4">
-            <Animatedbutton
-              onClick={clearCanvas}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-800 rounded-lg transition-colors flex-1 sm:flex-none"
-            >
-              Clear
-            </Animatedbutton>
-            <Animatedbutton
-              onClick={handleUndo}
-              disabled={strokes.length === 0}
-              className={`px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none ${
-                strokes.length === 0
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white border border-gray-300 text-slate-800 hover:bg-gray-100"
-              }`}
-            >
-              Undo
-            </Animatedbutton>
-            <Animatedbutton
-              onClick={saveSignature}
-              disabled={isSaving}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-slate-600 dark:hover:bg-slate-700 text-white rounded-md transition-colors flex-1 sm:flex-none"
-            >
-              {isSaving ? "Saving..." : "Save Signature"}
-            </Animatedbutton>
-          </div>
-
-          <DownloadSignature />
         </div>
 
         {/* Sidebar Controls */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4 text-black">
-            Signature Options
-          </h3>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4 uppercase tracking-wide">
+              Options
+            </h3>
 
-          {/* Color Selection */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pen Color:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {availableColors.map((color: ColorOption) => (
-                <button
-                  key={color.value}
-                  onClick={() => setPenColor(color.value)}
-                  className={`w-8 h-8 rounded-full ${
-                    penColor === color.value
-                      ? "ring-2 ring-offset-2 ring-indigo-500"
-                      : ""
-                  }`}
-                  style={{ backgroundColor: color.value }}
-                  title={color.label}
-                  type="button"
+            {/* Color Selection */}
+            <div className="mb-5">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                Color
+              </label>
+              <div className="flex flex-wrap gap-2 items-center">
+                {availableColors.map(color => (
+                  <button
+                    key={color.value}
+                    onClick={() => {
+                      setPenColor(color.value);
+                      play("select");
+                    }}
+                    className={`w-8 h-8 rounded-full transition-all ${
+                      penColor === color.value
+                        ? "ring-2 ring-offset-2 ring-indigo-500 scale-110"
+                        : "hover:scale-105"
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.label}
+                    type="button"
+                  />
+                ))}
+                <input
+                  type="color"
+                  value={penColor}
+                  onChange={e => {
+                    setPenColor(e.target.value);
+                    play("select");
+                  }}
+                  className="w-8 h-8 p-0 border-0 cursor-pointer rounded-full overflow-hidden"
+                  title="Custom Color"
                 />
-              ))}
-              <input
-                type="color"
-                value={penColor}
-                onChange={handleColorChange}
-                className="w-8 h-8 p-0 border-0 cursor-pointer"
-                title="Custom Color"
-              />
+              </div>
             </div>
-          </div>
 
-          {/* Size Selection */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 mb-1">
-              Pen Size:
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="1"
-                max="5"
-                step="1"
-                value={penSize}
-                onChange={handleSizeChange}
-                className="w-full"
-              />
-              <span className="text-black">{penSize}</span>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {availableSizes.map((size: SizeOption) => (
-                <Animatedbutton
-                  key={size.value}
-                  onClick={() => setPenSize(size.value)}
-                  className={`px-2 py-1 rounded ${
-                    penSize === size.value
-                      ? "bg-indigo-400 text-white"
-                      : "bg-indigo-100 text-black"
-                  }`}
-                  type="button"
-                >
-                  {size.label}
-                </Animatedbutton>
-              ))}
+            {/* Draw mode: pen size */}
+            {mode === "draw" && (
+              <div className="mb-5">
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                  Pen Size
+                </label>
+                <div className="flex gap-2">
+                  {availableSizes.map(size => (
+                    <Animatedbutton
+                      key={size.value}
+                      onClick={() => setPenSize(size.value)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        penSize === size.value
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                      }`}
+                      type="button"
+                    >
+                      {size.label}
+                    </Animatedbutton>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Type mode: font picker */}
+            {mode === "type" && (
+              <div className="mb-5">
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                  Font Style
+                </label>
+                <div className="flex flex-col gap-2">
+                  {FONT_OPTIONS.map(f => (
+                    <Animatedbutton
+                      key={f.css}
+                      onClick={() => setSelectedFont(f.css)}
+                      className={`px-3 py-2 rounded-xl text-left text-sm transition-all ${
+                        selectedFont === f.css
+                          ? "bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-400 text-indigo-700 dark:text-indigo-300"
+                          : "bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600"
+                      }`}
+                      style={{ fontFamily: f.css }}
+                    >
+                      {f.label}
+                    </Animatedbutton>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Background Style */}
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                Canvas Background
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {BG_OPTIONS.map(opt => (
+                  <Animatedbutton
+                    key={opt.value}
+                    onClick={() => setBgStyle(opt.value)}
+                    className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      bgStyle === opt.value
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                    }`}
+                  >
+                    {opt.label}
+                  </Animatedbutton>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Instructions */}
-          <div className="mt-6 text-black bg-indigo-50 rounded-2xl pt-2 pb-2">
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
             <Image
               src="/paint.svg"
-              alt="Upload Files"
-              width={100}
-              height={100}
-              className="mx-auto mb-3 transition-transform duration-300 group-hover:scale-110"
+              alt="Draw"
+              width={80}
+              height={80}
+              className="mx-auto mb-3"
             />
-            <div className="mt-1 px-2 py-1 mb-1">
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Use your mouse or finger to draw</li>
-                <li>Clear button erases everything</li>
-                <li>Try different colors and sizes</li>
-                <li>Name your signature before saving</li>
-              </ul>
-            </div>
+            <ul className="text-xs text-indigo-700 dark:text-indigo-300 space-y-1.5 list-disc pl-4">
+              {mode === "draw" ? (
+                <>
+                  <li>Draw with mouse or finger</li>
+                  <li>Use Undo to remove last stroke</li>
+                  <li>Pick any color or size</li>
+                  <li>Name it before saving</li>
+                </>
+              ) : (
+                <>
+                  <li>Type your name in the field</li>
+                  <li>Choose a font style</li>
+                  <li>Pick a color for the text</li>
+                  <li>Name it then save</li>
+                </>
+              )}
+            </ul>
           </div>
         </div>
       </div>
+
+      {/* Saved Signatures Gallery */}
+      {savedSignatures.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <PencilSquareIcon className="w-5 h-5 text-purple-500" />
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+              Saved Signatures
+            </h3>
+            <span className="ml-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-bold px-2 py-0.5 rounded-full">
+              {savedSignatures.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <AnimatePresence>
+              {savedSignatures.map(sig => (
+                <motion.div
+                  key={sig.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                >
+                  <div
+                    className="h-24 flex items-center justify-center p-3"
+                    style={{
+                      background:
+                        "repeating-conic-gradient(#f1f5f9 0% 25%, white 0% 50%) 0 0 / 12px 12px",
+                    }}
+                  >
+                    {(sig.base64 || sig.url) && (
+                      <img
+                        src={sig.base64 || sig.url}
+                        alt={sig.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    )}
+                  </div>
+                  <div className="px-3 py-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-700">
+                    <p
+                      className="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate max-w-[80px]"
+                      title={sig.name}
+                    >
+                      {sig.name.replace(".png", "")}
+                    </p>
+                    <a
+                      href={sig.base64 || sig.url}
+                      download={sig.name}
+                      className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                      title="Download"
+                    >
+                      <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

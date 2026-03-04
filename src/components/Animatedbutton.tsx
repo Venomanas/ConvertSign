@@ -1,21 +1,50 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { motion, HTMLMotionProps } from "framer-motion";
 import clsx from "clsx";
+import { useSound } from "@/hooks/useSound";
 
 type AnimatedButtonProps = {
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
+  /** Override the default 'click' sound with a specific sound, or pass null to suppress. */
+  soundType?:
+    | "click"
+    | "select"
+    | "deselect"
+    | "tab"
+    | "delete"
+    | "save"
+    | "toggle"
+    | "upload"
+    | "clear"
+    | "expand"
+    | "collapse"
+    | null;
 } & Omit<HTMLMotionProps<"button">, "children" | "className" | "disabled">;
 
 const Animatedbutton: React.FC<AnimatedButtonProps> = ({
   children,
   className,
   disabled,
+  soundType = "click",
+  onClick,
   ...rest
 }) => {
+  const { play } = useSound();
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && soundType !== null) {
+        play(soundType ?? "click");
+      }
+      onClick?.(e);
+    },
+    [disabled, soundType, play, onClick],
+  );
+
   return (
     <motion.button
       whileHover={disabled ? undefined : { scale: 1.02, y: -1 }}
@@ -26,6 +55,7 @@ const Animatedbutton: React.FC<AnimatedButtonProps> = ({
         className,
       )}
       disabled={disabled}
+      onClick={handleClick}
       {...rest}
     >
       {children}

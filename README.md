@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✍️ ConvertSign
+# ✍️ ConSo
 
 ### Free In-Browser Document & Image Tools
 

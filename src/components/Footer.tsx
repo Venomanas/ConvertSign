@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
               href="/dashboard"
               className="text-lg font-bold text-white hover:text-indigo-300 transition-colors"
             >
-              ConvertSign
+              ConSo
             </Link>
         
           </div>

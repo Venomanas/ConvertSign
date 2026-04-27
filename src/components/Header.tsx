@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
               href="/dashboard"
               className="text-xl sm:text-2xl font-bold text-sky-50 hover:text-white transition-colors"
             >
-              ConvertSign
+              ConSo
             </Link>
 
             {/* Desktop Navigation */}

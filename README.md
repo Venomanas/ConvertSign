@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](https://github.com/Venomanas/ConvertSign/pulls) 
 
-[🚀 **Live App**](https://convertsign.vercel.app) · [📂] ] Dashboard](https://convertsign.vercel.app/dashboard) · [💰]
+[🚀 **Live App**](https://convertsign.vercel.app) · [📂 Dashboard](https://convertsign.vercel.app/dashboard) ·
 
 </div>
 

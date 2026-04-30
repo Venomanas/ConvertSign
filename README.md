@@ -9,12 +9,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](https://github.com/Venomanas/ConvertSign/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](https://github.com/Venomanas/ConvertSign/pulls) 
 
-**40+ free, privacy-first document and image tools — powered entirely by your browser.**  
-No file uploads. No servers. No sign-up. Everything runs locally.
-
-[🚀 **Live App**](https://convertsign.vercel.app) · [📂 Dashboard](https://convertsign.vercel.app/dashboard) · [💰 Pricing](https://convertsign.vercel.app/pricing)
+[🚀 **Live App**](https://convertsign.vercel.app) · [📂] ] Dashboard](https://convertsign.vercel.app/dashboard) · [💰]
 
 </div>
 
@@ -175,8 +172,6 @@ src/
 - Image processing uses the Canvas API — no server roundtrips
 - Background removal uses [@imgly/background-removal](https://github.com/imgly/background-removal-js) — WASM AI model, fully client-side
 - OCR uses [Tesseract.js](https://tesseract.projectnaptha.com/) — in-browser
-- **Zero files are ever transmitted to any server**
-
 ---
 
 ## 🗺️ Roadmap
